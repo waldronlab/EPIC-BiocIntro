@@ -2,6 +2,7 @@
 Introduction to Bioconductor
 
 [EPIC course page](https://reg.abcsignup.com/reg/event_page.aspx?ek=0013-0020-9881fe9b04364e15834ade5310efcf56)
+
 [Course syllabus](https://docs.google.com/document/d/1lABhujgQi_AIZkbG0HCZOl1cL_pcA4uJ0Un2eEwYUVs/edit)
 
 ## Course Description
