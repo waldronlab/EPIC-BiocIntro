@@ -1,7 +1,7 @@
 # EPIC-BiocIntro
 Introduction to Bioconductor
 
-[EPIC course page](https://reg.abcsignup.com/reg/event_page.aspx?ek=0013-0020-9881fe9b04364e15834ade5310efcf56)
+[EPIC course page](https://reg.abcsignup.com/reg/event_page.aspx?ek=0013-0020-9d058371bad24b5a9739108cb9c7d483)
 
 [Course syllabus](https://docs.google.com/document/d/1lABhujgQi_AIZkbG0HCZOl1cL_pcA4uJ0Un2eEwYUVs/edit)
 
@@ -14,39 +14,34 @@ The Bioconductor project provides open-source software based on the R programmin
 
 ## Course Objectives
 
-Part 1: Intro to RNA-seq data
+Part 1: Bioconductor
 
-    Understand biological and technical features of RNA-seq data
-    Identify methods to map and count reads
-    Understand the quantitative measures used in RNA-seq analysis
-    Import data into Bioconductor
+    Find, install, and learn how to use Bioconductor packages
+    Import and manipulate genomic files and Bioconductor data objects
+    Start an RNA-seq differential expression workflow
 
- 
 
-Part 2: Pre-processing
+Part 2: Data structures for representing 'omics experiments
 
-    Carry out exploratory data analysis on read level and gene level
-    Identify normalization strategies to adjust for gene-level effects (eg. gene length or GC content)
-    Identify normalization strategies to adjust for sample-level effects (eg. sequencing depth)
+    Use the ExpressionSet data structure to represent, manipulate, and analyze microarray data
+    Use the SummarizedExperiment data structure to represent, manipulate, and analyze RNA-seq data
+    Understand similarities and differences between the two data structures
+    Create both data structures from public data resource
+    Use the MultiAssayExperiment data structure to coordinate multi'omics experiments
 
- 
 
-Part 3: Differential expression analysis
+Part 3: GenomicRanges
 
-    Describe how RNA-seq data are modeled with generalized linear models
-    Describe the concepts involved in differential expression analysis with edgeR and DESeq2
-    Identify similarities and differences between edgeR and DESeq2
-    Carry out a differential expression analysis on real data
+    Understand how to apply the *Ranges infrastructure to solve common bioinformatic challenges in genomic research
+    Gain insight into the design principles of the infrastructure and how it is meant to be used
+    Learn basics of genomic region algebra and how to carry out intra- and inter-region operations
 
- 
 
-Part 4: Gene set enrichment analysis
+Part 4: Visualizing genomic data
 
-    Describe gene set analysis theory and terminology
-    Describe how GO and KEGG define gene sets
-    Describe statistical concepts underlying overrepresentation analysis
-    Describe functional class scoring & permutation testing
-    Carry out gene set enrichment analysis on real data
+    Understand basic principles of the grammar of graphics used in R/Bioconductor
+    Learn how to display heatmaps for genomic data exploration
+    Learn how to display genomic data tracks in a genome browser view
 
 
 ## Prerequisites
