@@ -5,6 +5,8 @@ Introduction to Bioconductor
 
 [Course syllabus](https://docs.google.com/document/d/1lABhujgQi_AIZkbG0HCZOl1cL_pcA4uJ0Un2eEwYUVs/edit)
 
+[How to create a digital EPIC course](https://drive.google.com/drive/folders/1uvG0JK2KDmRpzYxXngjSQ160krktG8YC)
+
 ## Course Description
 
 The Bioconductor project provides open-source software based on the R programming language for statistical analysis and visualization of high-throughput genomic data. This course provides a broad introduction to the project, from navigating its large collection of packages to its core functionality for representation, manipulation, and visualization of genomic data. We will learn how to efficiently analyze genomic intervals and SNPs, how to manage experiments of one or more genomic data type with clinical and pathological data, and how to visualize genomic data. This workshop equips participants with essential background for a wide range of applications in statistical genomics and genetic epidemiology, such as GWAS, RNA-seq, DNA methylation, ChIP-seq, metagenomics, and multi'omic experiments.
