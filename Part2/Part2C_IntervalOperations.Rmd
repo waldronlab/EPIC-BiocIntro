@@ -1,0 +1,186 @@
+---
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: false
+    toc_depth: 3
+    fig_width: 5
+vignette: >
+  %\VignetteIndexEntry{Interval operations for GenomicRanges}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding[utf8]{inputenc}  
+---
+
+# Basic interval operations for *GRanges* objects
+
+There are many functions for manipulating *GRanges* objects. The
+functions can be classified as *intra-range functions*, *inter-range
+functions*, and *between-range functions*.
+
+*Intra-range functions* operate on each element of a
+*GRanges* object independent of the other ranges in the
+object. For example, the `flank` function can be used to recover
+regions flanking the set of ranges represented by the *GRanges*
+object. So to get a *GRanges* object containing the ranges that
+include the 10 bases upstream according to the direction of
+"transcription" (indicated by the strand):
+ 
+ ```{r flank}
+g <- gr[1:3]
+g <- append(g, gr[10])
+flank(g, 10)
+```
+
+And to include the downstream bases:
+ 
+```{r flank2}
+flank(g, 10, start=FALSE)
+```
+
+A common use case for `flank()` is generating promoter regions based
+on the transcript ranges. There is a convenience function that by
+default generates a region starting 2000bp upstream and 200bp
+downstream of the TSS,
+
+```{r promoters}
+promoters(g)
+```
+
+To ignore strand/transcription and assume the orientation of left to
+right use `unstrand()`,
+```{r unstrand}
+flank(unstrand(g), 10)
+```
+
+Other examples of intra-range functions include `resize()` and
+`shift()`. The `shift()` function will move the ranges by a specific number
+of base pairs, and the `resize()` function will set a specific width, by
+default fixing the "transcription" start (or just the start when
+strand is "*"). The `fix=` argument controls whether the "start",
+"end" or "center" is held constant.
+ 
+```{r shiftAndResize}
+shift(g, 5)
+resize(g, 30)
+```
+ 
+The `r BiocStyle::Biocpkg("GenomicRanges")` help page `?"intra-range-methods"`
+summarizes these methods.
+
+*Inter-range functions* involve comparisons between ranges in a single
+*GRanges* object and typically aggregate ranges. For instance, the
+`reduce()` function will merge overlapping and adjacent ranges to
+produce a minimal set of ranges representing the regions covered by
+the original set.
+ 
+```{r reduce}
+reduce(gr)
+reduce(gr, ignore.strand=TRUE)
+```
+ 
+Rarely, it useful to complement the (reduced) ranges. Note that the
+universe is taken as the entire sequence span in all three strands (+,
+-, *), which is often surprising when working with unstranded ranges.
+```{r gaps}
+gaps(g)
+```
+ 
+The `disjoin` function breaks up the ranges so that they do not
+overlap but still cover the same regions:
+ 
+```{r disjoin}
+disjoin(g)
+```
+ 
+The `coverage` function counts how many ranges overlap each position
+in the sequence universe of a *GRanges* object.
+ 
+```{r coverage}
+cov <- coverage(g)
+cov[1:3]
+```
+The coverage is stored compactly as an *RleList*, with one *Rle*
+vector per sequence. We can convert it to a *GRanges*,
+```{r coverage_to_gr}
+cov_gr <- GRanges(cov)
+cov_gr
+```
+and even convert the *GRanges* form back to an *RleList* by computing
+a weighted coverage,
+```{r coverage_to_rle}
+cov <- coverage(cov_gr, weight="score")
+```
+
+The *GRanges* derivative *GPos*, a compact representation of width 1
+ranges, is useful for representing coverage, although it cannot yet
+represent the coverage for the entire human genome (or any genome with
+over ~ 2 billion bp).
+```{r}
+GPos(cov[1:3])
+```
+
+These inter-range functions all generate entirely new sets of
+ranges. The return value is left unannotated, since there is no
+obvious way to carry the metadata across the operation. The user is
+left to map the metadata to the new ranges. Functions like `reduce()`
+and `disjoin()` facilitate this by optionally including in the
+returned metadata a one-to-many reverse mapping from the aggregate
+ranges to input ranges. For example, to average the score over a
+reduction,
+```{r reduce-mapping}
+rg <- reduce(gr, with.revmap=TRUE)
+rg$score <- mean(extractList(gr$score, rg$revmap))
+```
+
+See the `r BiocStyle::Biocpkg("GenomicRanges")` help page
+`?"inter-range-methods"` for additional help.
+
+## Interval set operations for *GRanges* objects
+
+*Between-range functions* calculate relationships between different
+*GRanges* objects. Of central importance are
+`findOverlaps` and related operations; these are discussed
+below.  Additional operations treat *GRanges* as mathematical
+sets of coordinates; `union(g, g2)` is the union of the
+coordinates in `g` and `g2`. Here are examples for
+calculating the `union`, the `intersect` and the
+asymmetric difference (using `setdiff`).
+ 
+```{r intervals1}
+g2 <- head(gr, n=2)
+union(g, g2)
+intersect(g, g2)
+setdiff(g, g2)
+```
+
+Related functions are available when the structure of the
+*GRanges* objects are 'parallel' to one another, i.e., element
+1 of object 1 is related to element 1 of object 2, and so on. These
+operations all begin with a `p`, which is short for
+parallel. The functions then perform element-wise, e.g., the union of
+element 1 of object 1 with element 1 of object 2, etc. A requirement
+for these operations is that the number of elements in each
+*GRanges* object is the same, and that both of the objects have
+the same seqnames and strand assignments throughout.
+ 
+```{r intervals2}
+g3 <- g[1:2]
+ranges(g3[1]) <- IRanges(start=105, end=112)
+punion(g2, g3)
+pintersect(g2, g3)
+psetdiff(g2, g3)
+```
+
+For more information on the `GRanges` classes be sure to consult
+the manual page.
+ 
+```{r manPage, eval=FALSE}
+?GRanges
+```
+ 
+A relatively comprehensive list of available functions is discovered
+with
+ 
+```{r granges-methods, eval=FALSE}
+methods(class="GRanges")
+``` 
