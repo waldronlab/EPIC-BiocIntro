@@ -1,0 +1,46 @@
+---
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: false
+    toc_depth: 3
+    fig_width: 5
+vignette: >
+  %\VignetteIndexEntry{Downstream analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding[utf8]{inputenc}  
+---
+
+[DESeq2]: https://bioconductor.org/packages/DESeq2
+
+# Down-stream analysis
+
+In this final section we quickly hint at down-stream analysis, and the way in which skills learned in working with _Bioconductor_ objects in one package translate to working with objects in other packages.
+
+We start by loading the [DESeq2][] package, a very popular facility for analysing bulk RNAseq differential experssion data.
+
+```{r, message=FALSE}
+library("DESeq2")
+```
+
+The package requires count data like that in the `SummarizedExperiment` we have been working with, in addition to a `formula` describing the experimental design. Some of the observations above suggest that we should include cell line as a covariate, and dexamethazone treatment as the main factor that we are interested in.
+
+```{r}
+dds <- DESeqDataSet(se, design = ~ cell + dex)
+dds
+```
+
+The `dds` object can be manipulated very much like a `SummarizedExperiment`.
+
+The essention DESeq work flow is summarized by a single function call, which performs advanced statistical analysis on the data in the `dds` object.
+
+```{r}
+dds <- DESeq(dds)
+```
+
+A table summarizing measures of differential expression can be extracted from the object, and visualized or manipulated using commands we learned earlier today.
+
+```{r}
+results(dds)
+```
+

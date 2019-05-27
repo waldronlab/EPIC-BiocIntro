@@ -1,0 +1,80 @@
+---
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: false
+    toc_depth: 3
+    fig_width: 5
+vignette: >
+  %\VignetteIndexEntry{Discovering Bioconductor packages}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding[utf8]{inputenc}  
+---
+
+# Discovering, installing, and learning how to use _Bioconductor_ packages
+
+**Discovery**
+
+The web site at https://bioconductor.org contains descriptions of all _Bioconductor_ packages, as well as essential reference material for all levels of user.
+
+Packages available in _Bioconductor_ are summarized at [https://bioconductor.org/packages][], also linked from the front page of the web site. The widget on the left summarizes four distinct types of _Bioconductor_ packages
+
+- 'Software' packages implement particular analyses or other functionality, e.g., querying web-based resources or importing common file formats to _Bioconductor_ objects.
+
+- 'Annotation' packages contain data that can be helpful in placing analysis results in context, for example: mapping between gene symbols such as "BRCA1" and Ensembl or Entrez gene identifiers; classifying genes in terms of gene ontology; describing the genomic coordinates of exons, transcripts, and genes; and representing whole genome sequences of common organisms.
+
+- 'Experiment data' packages contain highly curated data sets that can be useful for learning and teaching (e.g., the [airway][] package and data set used in the [DESeq2][] package for the analysis of bulk RNA-seq differential expression) or placing results in context (e.g., the [curatedTCGAData][] package for conveniently accessing TCGA data in a way that allows very smooth integeration into _Bioconductor_ analyses).
+
+- 'Workflow' packages that summarize common work flows, e.g., [simpleSingleCell][] for single-cell RNA-seq expression analysis.
+
+[airway]: https://bioconductor.org/packages/airway
+[DESeq2]: https://bioconductor.org/packages/DESeq2
+[curatedTCGAData]: https://bioconductor.org/packages/curatedTCGAData
+[simpleSingleCell]: https://bioconductor.org/packages/simpleSingleCell
+
+**Installation**
+
+Like CRAN packages, _Bioconductor_ packages need to be installed only once per _R_ installation, and then attached to each session where they are going to be used.
+
+_Bioconductor_ packages are installed slightly differently from CRAN packages. The first step is to install the [BiocManager][] package from CRAN.
+
+```{r, eval = FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", repos="https://cran.r-project.org")
+```
+
+The next step is to install the desired _Bioconductor_ packages. The syntax to install the [rtracklayer][] and [GenomicRanges][] packages is
+
+```{r, eval = FALSE}
+BiocManager::install(c("rtracklayer", "GenomicRanges"))
+```
+
+_Bioconductor_ packages tend to depend on one another quite alot, so it is important that the correct versions of all packages are installed. Validate your installation (not necessary during the course) with
+
+```{r, eval = FALSE}
+BiocManager::valid()
+```
+
+A convenient function in [BiocManager][] is `available()`, which accepts a regular expression to find matching packages. The following finds all 'TxDb' packages (describing exon, transcript, and gene coordinates) for _Homo sapiens_.
+
+```{r}
+BiocManager::available("TxDb.Hsapiens")
+```
+
+[BiocManager]: https://cran.r-project.org/package=BiocManager
+
+**Learning and support**
+
+Each package is linked to a 'landing page', e.g., [DESeq2][] that contains a description of the package, authors, perhaps literature citations where the software is described, and installation instructions.
+
+An important part of _Bioconductor_ packages are 'vignettes' which describe how the package is to be used. Vignettes are linked from package landing pages, and are available from within _R_ using
+
+```{r, eval = FALSE}
+browseVignettes("simpleSingleCell")
+```
+
+Users can get support on using packages at https://support.bioconductor.org, a question-and-answer style forum where response usually come quickly and often from very knowledgable users or the package developer. There are many additional sources of support, including [course material][] linked from the home page.
+
+[https://bioconductor.org/packages]: https://bioconductor.org/packages
+[work flows]: https://bioconductor.org/packages/release/BiocViews.html#___Workflow
+[course material]: https://bioconductor.org/help/course-materials

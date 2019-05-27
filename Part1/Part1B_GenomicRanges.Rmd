@@ -1,0 +1,144 @@
+---
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: false
+    toc_depth: 3
+    fig_width: 5
+vignette: >
+  %\VignetteIndexEntry{Working with GenomicRanges}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding[utf8]{inputenc}  
+---
+
+[GenomicRanges]: https://bioconductor.org/packages/GenomicRanges
+[rtracklayer]: https://bioconductor.org/packages/rtracklayer
+
+# Working with Genomic Ranges
+
+This section introduces two useful packages for general-purpose work on genomic coordinates. The [rtracklayer][] package provides the `import()` function to read many types of genomic files (e.g., BED, GTF, VCF, FASTA) into _Bioconductor_ objects. The [GenomicRanges][] package provides functions for manipulating genomic ranges, i.e., descriptions of exons, genes, ChIP peaks, called variants, ... as coordinates in genome space.
+
+Start by attaching the [rtracklayer][] and [GenomicRanges][] packages to our session.
+
+```{r, message=FALSE}
+library("rtracklayer")
+library("GenomicRanges")
+```
+
+**Importing data**
+
+We'll read in a BED file derived from the UCSC genome browser. The file contains the coordinates of all CpG islands in the human genome, and is described at the [UCSC table browser][]. Here are the first few lines of the file, giving the chromosme, start and end coordinates, and identifier of each CpG island.
+
+[UCSC table browser]: https://genome.ucsc.edu/cgi-bin/hgTables?hgsid=578954849_wF1QP81SIHdfr8b0kmZUOcsZcHYr&clade=mammal&org=Human&db=hg38&hgta_group=regulation&hgta_track=knownGene&hgta_table=0&hgta_regionType=genome&position=chr9%3A133252000-133280861&hgta_outputType=primaryTable&hgta_outFileName=
+
+```
+chr1	155188536	155192004	CpG:_361
+chr1	2226773	2229734	CpG:_366
+chr1	36306229	36307408	CpG:_110
+chr1	47708822	47710847	CpG:_164
+chr1	53737729	53739637	CpG:_221
+chr1	144179071	144179313	CpG:_20
+```
+
+Use `file.choose()` to find the file
+
+```{r, eval = FALSE}
+fname <- file.choose()   # CpGislands.Hsapiens.hg38.UCSC.bed
+```
+
+```{r, echo = FALSE}
+fname <- "files/CpGislands.Hsapiens.hg38.UCSC.bed"
+```
+
+```{r}
+fname
+file.exists(fname)
+```
+
+Then use `import()` from [rtracklayer][] to read the data into _R_. The end result is a `GenomicRanges` object describing each CpG island.
+
+```{r}
+cpg <- import(fname)
+cpg
+```
+
+Closely compare the coordinates of the first few ranges from the file with the first few ranges in the _Bioconductor_ representation. The [BED format][] specification says that coordinates are 0-based, and intervals are half-open (the 'start' coordinate is in the range, the 'end' coordinate is immediately after the range; this makes some computations easy). _Bioconductor_'s convention is that coordinates are 1-based and closed (i.e., both start and end coordinates are included in the range). [rtracklayer][]'s `import()` function has adjusted coordinates to follow _Bioconductor_ conventions.
+
+[BED format]: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
+
+**Working with genomic ranges**
+
+For convenience and to illustrate functionality, let's work only with the 'standard' chromosomes 1 - 22 autosomal, X, and Y chromosomes. Look up the help page `?keepStandardChromosomes` for an explanation of `pruning.mode=`.
+
+```{r}
+cpg <- keepStandardChromosomes(cpg, pruning.mode = "coarse")
+cpg
+```
+
+There are two parts to a `GenomicRanges` object. The `seqnames` (chromosomes, in the present case), start and end coordinates, and strand are _required_. Additional elements such as `name` in the current example are optional.
+Required components are accessed by functions such as `start()`, `end()` and `width()`. Optional components can be accessed using the `$` notation.
+
+```{r}
+head( start(cpg) )
+head( cpg$name )
+```
+
+Use the `width()` accessor function to extract a vector of widths of each CpG island. Transform the values using `log10()`, and visualize the distribution using `hist()`.
+
+```{r}
+hist(log10(width(cpg)))
+```
+
+Use `subset()` to select the CpG islands on chromosomes 1 and 2.
+
+```{r}
+subset(cpg, seqnames %in% c("chr1", "chr2"))
+```
+
+**Genomic annotations**
+
+Earlier we mentioned 'Annotation data' packages. An example is the TxDb.* family of packages. These packages contain information on the genomic coordinates of exons, genes, transcripts, etc. Attach the TxDb package corresponding to the _Homo sapiens_ hg38 genome build using the UCSC 'knownGene' track.
+
+```{r, message=FALSE}
+library("TxDb.Hsapiens.UCSC.hg38.knownGene")
+```
+
+Extract the coordinates of all transcripts
+
+```{r}
+tx <- transcripts(TxDb.Hsapiens.UCSC.hg38.knownGene)
+tx
+```
+
+Keep only the standard chromosomes, to work smoothly with our `cpg` object.
+
+```{r}
+tx <- keepStandardChromosomes(tx, pruning.mode="coarse")
+tx
+```
+
+**Overlaps**
+
+A very useful operation is to count overlaps in two distinct genomic ranges objects. The following counts the number of CpG islands that overlap each transcript. Related functions include `findOverlaps()`, `nearest()`, `precede()`, and `follow()`.
+
+```{r}
+olaps <- countOverlaps(tx, cpg)
+length(olaps)     # 1 count per transcript
+table(olaps)
+```
+
+Calculations such as `countOverlaps()` can be added to the `GRanges` object, tightly coupling derived data with the original annotation.
+
+```{r}
+tx$cpgOverlaps <- countOverlaps(tx, cpg)
+tx
+```
+
+It is then possible to perform coordinated actions, e.g., subsetting the `GRanges` objects for transcripts satisfying particular conditions, in a coordinated fashion where the software does all the book-keeping to makes sure the correct ranges are selected.
+
+```{r}
+subset(tx, cpgOverlaps > 10)
+````
+
+Can you think of other situations where one might calculate derived values and couple these with `GRanges` or similar objects?
+
