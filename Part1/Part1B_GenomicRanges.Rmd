@@ -97,7 +97,7 @@ subset(cpg, seqnames %in% c("chr1", "chr2"))
 
 **Genomic annotations**
 
-Earlier we mentioned 'Annotation data' packages. An example is the TxDb.* family of packages. These packages contain information on the genomic coordinates of exons, genes, transcripts, etc. Attach the TxDb package corresponding to the _Homo sapiens_ hg38 genome build using the UCSC 'knownGene' track.
+Earlier we mentioned 'Annotation data' packages. An example is the TxDb family of packages. These packages contain information on the genomic coordinates of exons, genes, transcripts, etc. Attach the TxDb package corresponding to the _Homo sapiens_ hg38 genome build using the UCSC 'knownGene' track.
 
 ```{r, message=FALSE}
 library("TxDb.Hsapiens.UCSC.hg38.knownGene")
@@ -142,3 +142,13 @@ subset(tx, cpgOverlaps > 10)
 
 Can you think of other situations where one might calculate derived values and couple these with `GRanges` or similar objects?
 
+**Exercise (10 min)**
+
+What is the maximum number of exons per transcript on chromosome 1 of the hg38 
+genome assembly?
+
+Hints:
+
+1. The `exons` function extracts exon coordinates from a TxDb object. 
+2. The `exons` function has an argument `columns` that can be used to obtain the
+transcript ID (`tx_id`) and/or transcript name (`tx_name`) for each exon.

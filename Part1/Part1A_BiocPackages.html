@@ -256,7 +256,7 @@ $(document).ready(function () {
 <p><em>Bioconductor</em> packages are installed slightly differently from CRAN packages. The first step is to install the <a href="https://cran.r-project.org/package=BiocManager">BiocManager</a> package from CRAN.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">if</span> (<span class="op">!</span><span class="kw">requireNamespace</span>(<span class="st">&quot;BiocManager&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>))
     <span class="kw">install.packages</span>(<span class="st">&quot;BiocManager&quot;</span>, <span class="dt">repos=</span><span class="st">&quot;https://cran.r-project.org&quot;</span>)</code></pre></div>
-<p>The next step is to install the desired <em>Bioconductor</em> packages. The syntax to install the [rtracklayer][] and [GenomicRanges][] packages is</p>
+<p>The next step is to install the desired <em>Bioconductor</em> packages. The syntax to install the <a href="https://bioconductor.org/packages/rtracklayer">rtracklayer</a> and <a href="https://bioconductor.org/packages/GenomicRanges">GenomicRanges</a> packages is</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="kw">c</span>(<span class="st">&quot;rtracklayer&quot;</span>, <span class="st">&quot;GenomicRanges&quot;</span>))</code></pre></div>
 <p><em>Bioconductor</em> packages tend to depend on one another quite alot, so it is important that the correct versions of all packages are installed. Validate your installation (not necessary during the course) with</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BiocManager<span class="op">::</span><span class="kw">valid</span>()</code></pre></div>
@@ -270,8 +270,10 @@ $(document).ready(function () {
 <p><strong>Learning and support</strong></p>
 <p>Each package is linked to a ‘landing page’, e.g., <a href="https://bioconductor.org/packages/DESeq2">DESeq2</a> that contains a description of the package, authors, perhaps literature citations where the software is described, and installation instructions.</p>
 <p>An important part of <em>Bioconductor</em> packages are ‘vignettes’ which describe how the package is to be used. Vignettes are linked from package landing pages, and are available from within <em>R</em> using</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">browseVignettes</span>(<span class="st">&quot;simpleSingleCell&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">browseVignettes</span>(<span class="st">&quot;GenomicRanges&quot;</span>)</code></pre></div>
 <p>Users can get support on using packages at <a href="https://support.bioconductor.org" class="uri">https://support.bioconductor.org</a>, a question-and-answer style forum where response usually come quickly and often from very knowledgable users or the package developer. There are many additional sources of support, including <a href="https://bioconductor.org/help/course-materials">course material</a> linked from the home page.</p>
+<p><strong>Exercise (5 min)</strong></p>
+<p>Use <code>BiocManager</code> to install the <code>DESeq2</code> package. To which category of Bioconductor packages does <code>DESeq2</code> belong? Screening through the vignette of the <code>DESeq2</code> package: what is the main purpose of the package?</p>
 </div>
 
 

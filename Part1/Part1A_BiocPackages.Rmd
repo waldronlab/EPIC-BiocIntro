@@ -31,6 +31,9 @@ Packages available in _Bioconductor_ are summarized at [https://bioconductor.org
 [DESeq2]: https://bioconductor.org/packages/DESeq2
 [curatedTCGAData]: https://bioconductor.org/packages/curatedTCGAData
 [simpleSingleCell]: https://bioconductor.org/packages/simpleSingleCell
+[GenomicRanges]: https://bioconductor.org/packages/GenomicRanges
+[rtracklayer]: https://bioconductor.org/packages/rtracklayer
+
 
 **Installation**
 
@@ -70,7 +73,7 @@ Each package is linked to a 'landing page', e.g., [DESeq2][] that contains a des
 An important part of _Bioconductor_ packages are 'vignettes' which describe how the package is to be used. Vignettes are linked from package landing pages, and are available from within _R_ using
 
 ```{r, eval = FALSE}
-browseVignettes("simpleSingleCell")
+browseVignettes("GenomicRanges")
 ```
 
 Users can get support on using packages at https://support.bioconductor.org, a question-and-answer style forum where response usually come quickly and often from very knowledgable users or the package developer. There are many additional sources of support, including [course material][] linked from the home page.
@@ -78,3 +81,10 @@ Users can get support on using packages at https://support.bioconductor.org, a q
 [https://bioconductor.org/packages]: https://bioconductor.org/packages
 [work flows]: https://bioconductor.org/packages/release/BiocViews.html#___Workflow
 [course material]: https://bioconductor.org/help/course-materials
+
+**Exercise (5 min)**
+
+Use `BiocManager` to install the `DESeq2` package.
+To which category of Bioconductor packages does `DESeq2` belong?
+Screening through the vignette of the `DESeq2` package: what is the main purpose
+of the package?
