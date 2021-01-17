@@ -1,0 +1,243 @@
+---
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: false
+    toc_depth: 3
+    fig_width: 5
+vignette: >
+  %\VignetteIndexEntry{Exercises and Solutions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding[utf8]{inputenc}  
+---
+
+# Solutions for Part 2
+
+## Part 2B
+
+1. What are the chromosome lengths of the mouse `mm9` genome assembly?
+
+Solution:
+
+- Install the corresponding `TxDb` annotation package:
+```{r, eval = FALSE}
+BiocManager::install("TxDb.Mmusculus.UCSC.mm9.knownGene")
+```
+
+- Obtain the chromosome lengths directly from the `TxDb` object:
+```{r, message = FALSE}
+library(TxDb.Mmusculus.UCSC.mm9.knownGene)
+seqlengths(TxDb.Mmusculus.UCSC.mm9.knownGene)
+```
+
+- Another obtion would be to just say:
+```{r}
+seqlengths(Seqinfo(genome = "mm9"))
+```
+
+Other approaches to obtain chromosome lengths for a specific genome assembly are listed 
+[here](https://msmith.de/2019/06/05/chrom-lengths-in-bioc.html). 
+
+2. Split the GRanges object `gr` by chromosome, and compute the mean GC content for each chromosome.
+
+Solution:
+
+- create the object as outlined in Part 2A:
+```{r example-GRanges}
+df <- data.frame(
+    seqnames = rep(c("chr1", "chr2", "chr1", "chr3"), c(1, 3, 2, 4)),
+    start = c(101, 105, 125, 132, 134, 152, 153, 160, 166, 170),
+    end = c(104, 120, 133, 132, 155, 154, 159, 166, 171, 190),
+    strand = rep(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
+    score = 1:10,
+    GC = seq(1, 0, length=10),
+    row.names = head(letters, 10))
+gr <- makeGRangesFromDataFrame(df, keep.extra.columns=TRUE)
+gr
+```
+
+- split by chromosome
+```{r}
+grl <- split(gr, ~ seqnames)
+grl
+```
+
+- compute the mean GC content for each chromosome:
+```{r}
+sapply(grl, function(g) mean(g$GC))
+```
+
+- alternatively just:
+```{r}
+aggregate(gr, GC ~ seqnames, mean)
+```
+
+3. Install the TxDb package for the yeast (_Saccharomyces cerevisiae_) `sacCer3` genome assembly. How many genes are there on each chromosome?
+
+Solution: 
+
+- Install the corresponding `TxDb` annotation package:
+```{r, eval = FALSE}
+BiocManager::install("TxDb.Scerevisiae.UCSC.sacCer3.sgdGene")
+```
+
+- Obtain the genes
+```{r, message = FALSE}
+library(TxDb.Scerevisiae.UCSC.sacCer3.sgdGene)
+genes <- genes(TxDb.Scerevisiae.UCSC.sacCer3.sgdGene)
+genes
+```
+
+- Split by chromosome and count number of genes per chromosome:
+```{r}
+lengths(split(genes, ~ seqnames))
+```
+
+## Part 2C
+
+1. Generate a `GRanges` object that contains the promoters for all genes on 
+chromosome 22 of the human `hg38` genome assembly. The promoter sequence should 
+only contain the 1 kbp upstream region of each gene.
+
+Solution:
+
+- obtain genes on chromosome 22 of the human `hg38` genome assembly:
+```{r, message = FALSE}
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+hg38.genes <- genes(TxDb.Hsapiens.UCSC.hg38.knownGene)
+hg38.chr22.genes <- subset(hg38.genes, seqnames == "chr22")
+hg38.chr22.genes
+```
+
+- generate promoter coordinates:
+```{r}
+proms <- promoters(hg38.chr22.genes, upstream = 1000, downstream = 0)
+proms
+```
+
+2. Reduce the set of promoters to a non-overlapping set of promoters.
+
+Solution:
+
+```{r}
+reduce(proms)
+```
+
+3. Compare the gene coordinates of the human `hg19` and `hg38` genome assemblies
+on chromosome 22. Therefore, subset to genes on chromosome 22 that are annotated for both genome assemblies. Then, use `ranges` to extract the gene coordinates, and compute pairwise intersections between them. For how many genes is the intersection larger than zero?
+
+Solution:
+
+- obtain genes on chromosome 22 of the human `hg19` genome assembly:
+```{r, message = FALSE}
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+hg19.genes <- genes(TxDb.Hsapiens.UCSC.hg19.knownGene)
+hg19.chr22.genes <- subset(hg19.genes, seqnames == "chr22")
+hg19.chr22.genes
+```
+
+- subset to genes that are annotated for both genome assemblies
+```{r}
+isect <- intersect(names(hg19.chr22.genes), names(hg38.chr22.genes))
+head(isect)
+hg19.chr22.genes <- hg19.chr22.genes[isect]
+hg38.chr22.genes <- hg38.chr22.genes[isect]
+```
+
+- use `ranges` to extract the gene coordinates, and compute pairwise intersections between them
+```{r}
+pisect <- pintersect(ranges(hg19.chr22.genes), ranges(hg38.chr22.genes), resolve.empty = "start.x")
+```
+
+- For how many genes is the intersection larger than zero?
+```{r}
+sum(width(pisect) > 0)
+```
+
+## Part 2D
+
+We consider the overlap of gene promoter regions and CpG islands in the human genome.
+We use the collection of CpG islands described in
+[Wu et al., 2010](https://doi.org/10.1093/biostatistics/kxq005).
+
+1. Import the collection of CpG islands from
+[here](http://www.haowulab.org/software/makeCGI/model-based-cpg-islands-hg19.txt)
+as a `GRanges`. 
+
+Solution:
+
+- import the data as a `GRanges`:
+
+```{r}
+df <- read.delim("http://www.haowulab.org/software/makeCGI/model-based-cpg-islands-hg19.txt")
+cpg <- makeGRangesFromDataFrame(df, keep.extra.columns = TRUE)
+cpg
+```
+
+- annotate genome and sort genomic coordinates:
+
+```{r}
+genome(cpg) <- "hg19"
+cpg <- sort(cpg)
+cpg
+```
+
+2. Import the promoter regions in the *hg19* human genome assembly as available 
+[here](http://gattaca.imppc.org/regioner/data/UCSC.promoters.hg19.bed)
+as a `GRanges`. 
+
+Solution:
+
+- import the data as a `GRanges`:
+
+```{r}
+df <- read.delim("http://gattaca.imppc.org/regioner/data/UCSC.promoters.hg19.bed")
+proms <- makeGRangesFromDataFrame(df, keep.extra.columns = TRUE)
+proms
+```
+
+- annotate genome and sort genomic coordinates:
+
+```{r}
+genome(proms) <- "hg19"
+proms <- sort(proms)
+proms
+```
+
+3. Determine the percentage of promoters on chromosome 21 that overlap with at 
+least one CpG island. 
+
+Solution:
+
+- determine for each promoter on chromosome 21 the number of overlapping CpG islands
+
+```{r}
+chr21.cpg <- subset(cpg, seqnames == "chr21")
+chr21.proms <- subset(proms, seqnames == "chr21")
+olaps <- countOverlaps(chr21.proms, chr21.cpg)
+head(olaps)
+```
+
+- percentage of promoters that overlap with at least one CpG island:
+
+```{r}
+sum(olaps > 0) / length(chr21.proms) * 100 
+```
+
+4. For those promoters that overlap with CpG islands, annotate the number of 
+overlapping CpG islands as an additional column.
+
+Solution:
+
+```{r}
+chr21.proms.with.cpg <- subsetByOverlaps(chr21.proms, chr21.cpg)
+chr21.proms.with.cpg$nr.cpg <- olaps[olaps > 0]
+chr21.proms.with.cpg
+```
+
+What is the maximum number of overlapping CpG islands for one promoter at a time? 
+```{r}
+max(chr21.proms.with.cpg$nr.cpg)
+```
+
+

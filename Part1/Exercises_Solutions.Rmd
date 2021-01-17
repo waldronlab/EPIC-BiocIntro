@@ -1,0 +1,161 @@
+---
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: false
+    toc_depth: 3
+    fig_width: 5
+vignette: >
+  %\VignetteIndexEntry{Exercises and Solutions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding[utf8]{inputenc}  
+---
+
+# Solutions for Part 1
+
+## Part 1A
+
+Use `BiocManager` to install the `DESeq2` package.
+
+```{r, eval = FALSE}
+BiocManager::install("DESeq2")
+```
+
+To which category of Bioconductor packages does `DESeq2` belong?
+
+- Software packages.
+
+Screening through the vignette of the `DESeq2` package: what is the main purpose
+of the package?
+
+- Differential expression analysis for RNA-seq data.
+
+## Part 1B
+
+What is the maximum number of exons per transcript on chromosome 1 of the hg38 
+genome assembly?
+
+Hints:
+
+1. The `exons` function extracts exon coordinates from a TxDb object. 
+2. The `exons` function has an argument `columns` that can be used to obtain the
+transcript ID (`tx_id`) and/or transcript name (`tx_name`) for each exon.
+
+Solution:
+
+1. Install the corresponding TxDb package
+
+```{r, eval = FALSE}
+BiocManager::install("TxDb.Hsapiens.UCSC.hg38.knownGene")
+```
+
+2. Obtain the exon information
+
+```{r, message = FALSE}
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+ex <- exons(TxDb.Hsapiens.UCSC.hg38.knownGene, columns = c("tx_id", "tx_name"))
+ex
+```
+
+3. Subset to chromosome 1
+
+```{r}
+ex <- subset(ex, seqnames == "chr1")
+ex
+```
+
+4. Table and sort exons per transcript:
+
+```{r}
+tab <- table(unlist(ex$tx_name))
+tab <- sort(tab, decreasing = TRUE)
+head(tab)
+```
+
+The maximum number of exons per transcript on chromosome 1 is 138 
+(which is the case for transcripts ENST00000369373.9 and ENST00000392971.6).
+
+## Part 1C
+
+1. Subset the `SummarizedExperiment` object `se` created above to genes (rows) 
+with at least 8 reads mapped across all samples. Hint: use `rowSums`.
+
+Solution:
+
+Create the `SummarizedExperiment` as demonstrated in the vignette of Part 1C.
+
+```{r, message = FALSE}
+library(SummarizedExperiment)
+colData <- read.csv("files/airway_colData.csv", row.names = 1)
+counts <- read.csv("files/airway_counts.csv", row.names = 1)
+counts <- as.matrix(counts)
+se <- SummarizedExperiment(assay = list(count=counts), colData = colData)
+se$lib.size <- colSums(assay(se))
+se
+```
+
+Subset to genes with at least 8 reads mapped across samples.
+
+```{r}
+se <- subset(se, rowSums(assay(se)) >= 8, )
+se 
+```
+
+2. Scale the read counts by library size, i.e. divide each column of `assay(se)`
+by the corresponding `lib.size` of each sample (column). 
+Multiply the resulting scaled counts by `10^6` to obtain counts per million reads mapped.
+
+Solution: 
+
+```{r}
+assay(se) <- sweep(assay(se), 2, FUN = "/", STATS = se$lib.size)
+assay(se) <- assay(se) * 10^6
+head(assay(se)) 
+```
+
+3. Subset the resulting `se` containing counts per million reads mapped to the first one hundred genes (`1:100`).
+
+Solution:
+
+```{r}
+se <- se[1:100,]
+se
+```
+
+4. Carry out a _t_-test for each of the selected 100 genes. 
+Test for differences in mean read count per million reads mapped between the 
+dexamethasone treated and untreated sample group.
+Annotate the resulting _p_-values as a new column in the `rowData` slot of your
+`SummarizedExperiment`.   
+Hint: use `apply` and `t.test`.
+
+Solution:
+
+Define a function that tests one gene (one row) at a time:
+
+```{r}
+dex <- se$dex == "trt"
+testRow <- function(row) t.test(row[dex], row[!dex])
+testRow(assay(se)[1,])
+```
+
+Re-define the function to just report the _p_-value:
+```{r}
+testRow <- function(row) t.test(row[dex], row[!dex])$p.value
+testRow(assay(se)[1,])
+```
+
+
+Apply the function to test all 100 genes
+
+```{r}
+ps <- apply(assay(se), 1, testRow)
+head(ps)
+```
+
+and append to the `rowData` slot.
+
+```{r}
+rowData(se)$pvalue <- ps
+rowData(se)
+```

@@ -1,0 +1,176 @@
+---
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: false
+    toc_depth: 3
+    fig_width: 5
+vignette: >
+  %\VignetteIndexEntry{Working with SummarizedExperiment}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding[utf8]{inputenc}  
+---
+
+[SummarizedExperiment]: https://bioconductor.org/packages/SummarizedExperiment
+
+# Working with SummarizedExperiment
+
+Originally developed for and specifically tailored to microarray data, the 
+`ExpressionSet` container has several limitations when dealing with other types 
+of genomic high-throughput data.
+Especially sequencing-based technologies such as RNA-seq require compatibility 
+with operations on genomic regions. 
+On the other hand, big data as e.g. obtained from methylation and single-cell assays 
+requires efficient dealing with out-of-memory representations.
+These demands led to the development of `SummarizedExperiment`, which has largely 
+replaced `ExpressionSet` as the standard Bioconductor container for genomic 
+high-throughput data. 
+
+![](files/SummarizedExperiment.png)
+
+ExpressionSet | SummarizedExperiment
+-------  | ---------:
+`exprs`  | `assay` 
+`pData`  | `colData` 
+`fData`  | `rowData`
+`experimentData` | `metadata`
+`annotation` | `metadata(se)$annotation`
+
+Backward compatibility is provided by seamless conversion of an `ExpressionSet` 
+to a `SummarizedExperiment`,
+
+```{r, message=FALSE}
+library(SummarizedExperiment)
+se <- as(eset, "SummarizedExperiment")
+se
+```
+
+and vice versa.
+
+```{r}
+eset <- as(se, "ExpressionSet")
+eset
+```
+
+## Construction from GEO
+
+The [NCBI Gene Expression Omnibus](https://www.ncbi.nlm.nih.gov/geo) (GEO) serves as a public repository for a wide range of high-throughput experimental data. These data include single and dual channel microarray-based experiments measuring mRNA, genomic DNA, and protein abundance, as well as non-array techniques such as serial analysis of gene expression (SAGE), mass spectrometry proteomic data, and high-throughput sequencing data.
+
+Bioconductor’s [GEOquery](https://bioconductor.org/packages/GEOquery) package simplifies harvesting of this archive, and forms a bridge between GEO and the analysis capabilities in Bioconductor.
+We use the package to obtain [expression data from a pan-cancer study](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103512) as an `ExpressionSet`. 
+
+```{r, echo=TRUE, cache=TRUE, message=FALSE, warning=FALSE}
+library(GEOquery)
+gse <- getGEO("GSE103512")[[1]]
+gse
+as(gse, "SummarizedExperiment")
+```
+
+## Anatomy of a `SummarizedExperiment`
+
+The _SummarizedExperiment_ package contains two classes: 
+`SummarizedExperiment` and `RangedSummarizedExperiment`.
+
+`SummarizedExperiment` is a matrix-like container where rows represent features
+of interest (e.g. genes, transcripts, exons, etc.) and columns represent
+samples. The objects contain one or more assays, each represented by a
+matrix-like object of numeric or other mode. The rows of a
+`SummarizedExperiment` object represent features of interest.  Information
+about these features is stored in a `DataFrame` object, accessible using the 
+function `rowData()`. Each row of the `DataFrame` provides information on the 
+feature in the corresponding row of the `SummarizedExperiment` object. Columns
+of the DataFrame represent different attributes of the features of interest,
+e.g., gene or transcript IDs, etc.
+
+`RangedSummarizedExperiment` is the child of the `SummarizedExperiment` class
+which means that all the methods on `SummarizedExperiment` also work on a
+`RangedSummarizedExperiment`.
+
+The fundamental difference between the two classes is that the rows of a
+`RangedSummarizedExperiment` object represent genomic ranges of interest
+instead of a `DataFrame` of features. The `RangedSummarizedExperiment` ranges
+are described by a `GRanges` or a `GRangesList` object, accessible using the 
+`rowRanges()` function.
+
+The `airway` package contains an example dataset from an RNA-Seq experiment of
+read counts per gene for airway smooth muscles.  These data are stored
+in a `RangedSummarizedExperiment` object which contains 8 different
+experimental and assays 64,102 gene transcripts.
+
+```{r, message=FALSE}
+library(airway)
+data(airway)
+se <- airway
+se
+rowRanges(se)
+```
+
+### Assays
+
+To retrieve the experiment data from a `SummarizedExperiment` object one can
+use the `assays()` accessor.  An object can have multiple assay datasets
+each of which can be accessed using the `$` operator.
+The `airway` dataset contains only one assay (`counts`).  Here each row
+represents a gene transcript and each column one of the samples.
+
+```{r assays}
+assays(se)
+head( assays(se)$counts )
+head( assay(se) )
+```
+
+There are two accessor functions for extracting the assay data from a
+`SummarizedExperiment` object.  `assays()` operates on the entire list of assay
+data as a whole, while `assay()` operates on only one assay at a time.
+`assay(x, i)` is simply a convenience function which is equivalent to
+`assays(x)[[i]]`. `assay` defaults to the first assay if no `i` is given.
+
+## Common operations on `SummarizedExperiment`
+
+### Subsetting
+
+- `[` Performs two dimensional subsetting, just like subsetting a matrix
+    or data frame.
+```{r 2d}
+# subset the first five transcripts and first three samples
+se[1:5, 1:3]
+```
+- `$` operates on `colData()` columns, for easy sample extraction.
+```{r colDataExtraction}
+se[, se$cell == "N61311"]
+```
+
+### Range-based operations
+
+- `subsetByOverlaps()`
+`SummarizedExperiment` objects support all of the `findOverlaps()` methods and
+associated functions.  This includes `subsetByOverlaps()`, which makes it easy
+to subset a `SummarizedExperiment` object by an interval.
+
+```{r overlap}
+# Subset for only rows which are in the interval 100,000 to 110,000 of
+# chromosome 1
+roi <- GRanges(seqnames="1", ranges=100000:1100000)
+subsetByOverlaps(se, roi)
+```
+
+## Extensions of SummarizedExperiment
+
+- [RaggedExperiment](https://bioconductor.org/packages/RaggedExperiment)
+- [MultiAssayExperiment](https://bioconductor.org/packages/MultiAssayExperiment)
+- [SingleCellExperiment](https://bioconductor.org/packages/SingleCellExperiment)
+- [TreeSummarizedExperiment](https://bioconductor.org/packages/TreeSummarizedExperiment)
+
+## Exercises (15 min)
+
+1. Use the `GEOquery` package to download [GSE5859](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE5859)
+ as an `ExpressionSet`, and transform it into a `SummarizedExperiment`.
+2. The `rowRanges` of the `airway` dataset are stored in a `GRangesList`, which contains the exon coordinates
+for each gene. Use the `range` function to determine the region covered by exons for each gene.
+Use `unlist` on the resulting `GRangesList` to convert it into a `GRanges`, and 
+replace the `rowRanges` of `airway` with it. 
+3. Add a `colData` column named `GROUP` to the `airway` dataset. This column should
+be a binary vector which indicates wether the cell lines have been treated with 
+dexamethasone (1) or not (0).
+
+

@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -74,7 +74,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -131,7 +131,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -193,6 +192,7 @@ summary {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -204,18 +204,6 @@ summary {
   display: none;
 }
 </style>
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
 
 <!-- code folding -->
 
@@ -240,77 +228,300 @@ $(document).ready(function () {
 </div>
 
 
-<div id="downstream-analysis" class="section level1">
-<h1>Downstream analysis</h1>
-<p>In this section we look into downstream analysis of gene expression data, and the way in which skills learned in working with <em>Bioconductor</em> objects in one package translate to working with objects in other packages.</p>
-<p>We start by loading the <a href="https://bioconductor.org/packages/DESeq2">DESeq2</a> package, a very popular facility for analysing differential expression of bulk RNA-seq data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;DESeq2&quot;</span>)</code></pre></div>
-<p>The package requires count data like that in the <code>SummarizedExperiment</code> we have been working with, in addition to a <code>formula</code> describing the experimental design. We use the cell line as a covariate, and dexamethazone treatment as the main factor that we are interested in.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dds &lt;-<span class="st"> </span><span class="kw">DESeqDataSet</span>(se, <span class="dt">design =</span> <span class="op">~</span><span class="st"> </span>cell <span class="op">+</span><span class="st"> </span>dex)</code></pre></div>
-<pre><code>## renaming the first element in assays to 'counts'</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dds</code></pre></div>
-<pre><code>## class: DESeqDataSet 
-## dim: 33469 8 
-## metadata(1): version
-## assays(1): counts
-## rownames(33469): ENSG00000000003 ENSG00000000419 ...
-##   ENSG00000273492 ENSG00000273493
+<div id="solutions-for-part-3a" class="section level1">
+<h1>Solutions for Part 3A</h1>
+<div id="part-3a" class="section level2">
+<h2>Part 3A</h2>
+<ol style="list-style-type: decimal">
+<li>Install the <a href="https://bioconductor.org/packages/ALL">ALL</a> experimental data package. Load the dataset and extract the following information about the experiment: how many features and how many samples are measured? Which additional characteristics are annotated for the samples? Which microarray platform has been used (microarry chip ID)? Where has the experiment been conducted and which PUBMED IDs can be consulted for more information?</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>Install the package</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;ALL&quot;</span>)</code></pre></div>
+<ul>
+<li>Load the package and the contained dataset</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ALL)
+<span class="kw">data</span>(ALL)
+ALL</code></pre></div>
+<pre><code>## ExpressionSet (storageMode: lockedEnvironment)
+## assayData: 12625 features, 128 samples 
+##   element names: exprs 
+## protocolData: none
+## phenoData
+##   sampleNames: 01005 01010 ... LAL4 (128 total)
+##   varLabels: cod diagnosis ... date last seen (21 total)
+##   varMetadata: labelDescription
+## featureData: none
+## experimentData: use 'experimentData(object)'
+##   pubMedIds: 14684422 16243790 
+## Annotation: hgu95av2</code></pre>
+<ul>
+<li>how many features and how many samples are measured?</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(ALL)</code></pre></div>
+<pre><code>## Features  Samples 
+##    12625      128</code></pre>
+<ul>
+<li>which additional characteristics are annotated for the samples?</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">colnames</span>(<span class="kw">pData</span>(ALL))</code></pre></div>
+<pre><code>##  [1] &quot;cod&quot;            &quot;diagnosis&quot;      &quot;sex&quot;            &quot;age&quot;           
+##  [5] &quot;BT&quot;             &quot;remission&quot;      &quot;CR&quot;             &quot;date.cr&quot;       
+##  [9] &quot;t(4;11)&quot;        &quot;t(9;22)&quot;        &quot;cyto.normal&quot;    &quot;citog&quot;         
+## [13] &quot;mol.biol&quot;       &quot;fusion protein&quot; &quot;mdr&quot;            &quot;kinet&quot;         
+## [17] &quot;ccr&quot;            &quot;relapse&quot;        &quot;transplant&quot;     &quot;f.u&quot;           
+## [21] &quot;date last seen&quot;</code></pre>
+<ul>
+<li>which microarray platform has been used (microarry chip ID)?</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">annotation</span>(ALL)</code></pre></div>
+<pre><code>## [1] &quot;hgu95av2&quot;</code></pre>
+<ul>
+<li>where has the experiment been conducted and which PUBMED IDs can be consulted for more information?</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">experimentData</span>(ALL)</code></pre></div>
+<pre><code>## Experiment data
+##   Experimenter name: Chiaretti et al. 
+##   Laboratory: Department of Medical Oncology, Dana-Farber Cancer Institute, Department of Medicine, Brigham and Women's Hospital, Harvard Medical School, Boston, MA 02115, USA. 
+##   Contact information:  
+##   Title: Gene expression profile of adult T-cell acute lymphocytic leukemia identifies distinct subsets of patients with different response to therapy and survival. 
+##   URL:  
+##   PMIDs: 14684422 16243790 
+## 
+##   Abstract: A 187 word abstract is available. Use 'abstract' method.</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Install the <a href="https://bioconductor.org/packages/EnrichmentBrowser">EnrichmentBrowser</a> package. The package implements a function <code>probe2gene</code> that allows to easily summarize microarray probe level expression to gene level expression (as described in the vignette, Section 3.1). Use the function to summarize the expression levels for the ALL dataset. How many genes are contained in the summarized dataset?</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>Install the package</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;EnrichmentBrowser&quot;</span>)</code></pre></div>
+<ul>
+<li>Load the package</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(EnrichmentBrowser)</code></pre></div>
+<ul>
+<li>use the function to summarize the expression levels for the ALL dataset.</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">gene.eset &lt;-<span class="st"> </span><span class="kw">probe2gene</span>(ALL)</code></pre></div>
+<pre><code>## Encountered 656 from.IDs with &gt;1 corresponding to.ID</code></pre>
+<pre><code>## (the first to.ID was chosen for each of them)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">gene.eset</code></pre></div>
+<pre><code>## class: SummarizedExperiment 
+## dim: 9009 128 
+## metadata(3): experimentData annotation protocolData
+## assays(1): exprs
+## rownames(9009): 5595 7075 ... 7850 1593
 ## rowData names(0):
-## colnames(8): SRR1039508 SRR1039509 ... SRR1039520 SRR1039521
-## colData names(10): SampleName cell ... BioSample lib.size</code></pre>
-<p>The <code>dds</code> object can be manipulated very much like a <code>SummarizedExperiment</code>.</p>
-<p>The DESeq workflow is summarized by a single function call, which performs statistical analysis on the data in the <code>dds</code> object.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dds &lt;-<span class="st"> </span><span class="kw">DESeq</span>(dds)</code></pre></div>
-<pre><code>## estimating size factors</code></pre>
-<pre><code>## estimating dispersions</code></pre>
-<pre><code>## gene-wise dispersion estimates</code></pre>
-<pre><code>## mean-dispersion relationship</code></pre>
-<pre><code>## final dispersion estimates</code></pre>
-<pre><code>## fitting model and testing</code></pre>
-<p>A table summarizing measures of differential expression can be extracted from the object, and visualized or manipulated using commands we learned earlier today.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">results</span>(dds)</code></pre></div>
-<pre><code>## log2 fold change (MLE): dex untrt vs trt 
-## Wald test p-value: dex untrt vs trt 
-## DataFrame with 33469 rows and 6 columns
-##                          baseMean      log2FoldChange             lfcSE
-##                         &lt;numeric&gt;           &lt;numeric&gt;         &lt;numeric&gt;
-## ENSG00000000003  708.602169691234   0.381253982523043 0.100654411867396
-## ENSG00000000419  520.297900552084  -0.206812601085043 0.112218646508368
-## ENSG00000000457  237.163036796015 -0.0379204312050886 0.143444654933749
-## ENSG00000000460  57.9326331250967  0.0881681758708941 0.287141822933388
-## ENSG00000000938 0.318098378392895    1.37822703433214  3.49987280259267
-## ...                           ...                 ...               ...
-## ENSG00000273487   8.1632349843654   -1.04640654119471 0.698966822019962
-## ENSG00000273488  8.58447903624707  -0.107830154771013  0.63809903487588
-## ENSG00000273489 0.275899382507797   -1.48373838425916  3.51394583815493
-## ENSG00000273492 0.105978355992386   0.463679009985687  3.52308267589304
-## ENSG00000273493 0.106141666408122   0.521354507611989  3.53139024554344
-##                               stat               pvalue
-##                          &lt;numeric&gt;            &lt;numeric&gt;
-## ENSG00000000003   3.78775232451125 0.000152016273081244
-## ENSG00000000419  -1.84294328545142   0.0653372915124384
-## ENSG00000000457 -0.264355832725887    0.791505741607837
-## ENSG00000000460  0.307054454729667    0.758801923977348
-## ENSG00000000938  0.393793463954221    0.693733530342183
-## ...                            ...                  ...
-## ENSG00000273487   -1.4970761246874    0.134373451364789
-## ENSG00000273488 -0.168986550484264    0.865807220414777
-## ENSG00000273489 -0.422242815511986    0.672847792938571
-## ENSG00000273492  0.131611731157615    0.895291406125436
-## ENSG00000273493  0.147634351165219    0.882631343839791
-##                                padj
-##                           &lt;numeric&gt;
-## ENSG00000000003 0.00127423101782761
-## ENSG00000000419   0.195433088568711
-## ENSG00000000457   0.910602138768705
-## ENSG00000000460   0.893977566260607
-## ENSG00000000938                  NA
-## ...                             ...
-## ENSG00000273487   0.327756206300159
-## ENSG00000273488   0.944617232244068
-## ENSG00000273489                  NA
-## ENSG00000273492                  NA
-## ENSG00000273493                  NA</code></pre>
+## colnames(128): 01005 01010 ... 83001 LAL4
+## colData names(21): cod diagnosis ... f.u date.last.seen</code></pre>
+<ul>
+<li>how many genes are contained in the summarized dataset?</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">nrow</span>(gene.eset)</code></pre></div>
+<pre><code>## [1] 9009</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Install the <a href="https://bioconductor.org/packages/curatedMetagenomicData">curatedMetagenomicData</a> package. The package contains whole-metagenome sequencing datasets for thousands of human microbiome samples, and demonstrates the usage of <code>ExpressionSet</code> for microbiome data. Section 3 of the vignette describes how to access individual datasets. Follow the description to obtain the <code>ZellerG_2014</code> dataset. What is the mean age of the patients studied in the dataset? Which diseases are monitored in this experiment?</li>
+</ol>
+<ul>
+<li>Install the package</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;curatedMetagenomicData&quot;</span>)</code></pre></div>
+<ul>
+<li>Load the package</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(curatedMetagenomicData)</code></pre></div>
+<ul>
+<li>Follow the description to obtain the <code>ZellerG_2014</code> dataset.</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">zeller.eset &lt;-<span class="st"> </span><span class="kw">ZellerG_2014.metaphlan_bugs_list.stool</span>()
+zeller.eset</code></pre></div>
+<pre><code>## ExpressionSet (storageMode: lockedEnvironment)
+## assayData: 1585 features, 199 samples 
+##   element names: exprs 
+## protocolData: none
+## phenoData
+##   sampleNames: CCIS00146684ST-4-0 CCIS00281083ST-3-0 ... MMPU99077057ST
+##     (199 total)
+##   varLabels: subjectID body_site ... NCBI_accession (22 total)
+##   varMetadata: labelDescription
+## featureData: none
+## experimentData: use 'experimentData(object)'
+##   pubMedIds: 25432777 
+## Annotation:</code></pre>
+<ul>
+<li>What is the mean age of the patients studied in the dataset?</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(zeller.eset<span class="op">$</span>age)</code></pre></div>
+<pre><code>## [1] 62.34673</code></pre>
+<ul>
+<li>Which diseases are monitored in this experiment?</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(zeller.eset<span class="op">$</span>disease)</code></pre></div>
+<pre><code>## 
+## adenoma     CRC healthy 
+##      42      91      66</code></pre>
+<p>(CRC = colorectal cancer)</p>
+</div>
+<div id="part-3b" class="section level2">
+<h2>Part 3B</h2>
+<ol style="list-style-type: decimal">
+<li>Use the <code>GEOquery</code> package to download <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE5859">GSE5859</a> as an <code>ExpressionSet</code>, and transform it into a <code>SummarizedExperiment</code>.</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(GEOquery)
+gse &lt;-<span class="st"> </span><span class="kw">getGEO</span>(<span class="st">&quot;GSE5859&quot;</span>)[[<span class="dv">1</span>]]
+gse</code></pre></div>
+<pre><code>## ExpressionSet (storageMode: lockedEnvironment)
+## assayData: 8793 features, 208 samples 
+##   element names: exprs 
+## protocolData: none
+## phenoData
+##   sampleNames: GSM25349 GSM25350 ... GSM136729 (208 total)
+##   varLabels: title geo_accession ... http:ch1 (42 total)
+##   varMetadata: labelDescription
+## featureData
+##   featureNames: 1007_s_at 1053_at ... AFFX-r2-P1-cre-5_at (8793 total)
+##   fvarLabels: ID GB_ACC ... Gene Ontology Molecular Function (16 total)
+##   fvarMetadata: Column Description labelDescription
+## experimentData: use 'experimentData(object)'
+##   pubMedIds: 17206142 
+## Annotation: GPL201</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">se &lt;-<span class="st"> </span><span class="kw">as</span>(gse, <span class="st">&quot;SummarizedExperiment&quot;</span>)
+se</code></pre></div>
+<pre><code>## class: SummarizedExperiment 
+## dim: 8793 208 
+## metadata(3): experimentData annotation protocolData
+## assays(1): exprs
+## rownames(8793): 1007_s_at 1053_at ... AFFX-r2-P1-cre-3_at
+##   AFFX-r2-P1-cre-5_at
+## rowData names(16): ID GB_ACC ... Gene.Ontology.Cellular.Component
+##   Gene.Ontology.Molecular.Function
+## colnames(208): GSM25349 GSM25350 ... GSM136727 GSM136729
+## colData names(42): title geo_accession ...
+##   Coriell.cell.line.repository.identifier.ch1 http.ch1</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>The <code>rowRanges</code> of the <code>airway</code> dataset are stored in a <code>GRangesList</code>, which contains the exon coordinates for each gene. Use the <code>range</code> function to determine the region covered by exons for each gene. Use <code>unlist</code> on the resulting <code>GRangesList</code> to convert it into a <code>GRanges</code>, and replace the <code>rowRanges</code> of <code>airway</code> with it.</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(airway)
+<span class="kw">data</span>(airway)
+<span class="kw">rowRanges</span>(airway)</code></pre></div>
+<pre><code>## GRangesList object of length 64102:
+## $ENSG00000000003
+## GRanges object with 17 ranges and 2 metadata columns:
+##        seqnames            ranges strand |   exon_id       exon_name
+##           &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt;     &lt;character&gt;
+##    [1]        X 99883667-99884983      - |    667145 ENSE00001459322
+##    [2]        X 99885756-99885863      - |    667146 ENSE00000868868
+##    [3]        X 99887482-99887565      - |    667147 ENSE00000401072
+##    [4]        X 99887538-99887565      - |    667148 ENSE00001849132
+##    [5]        X 99888402-99888536      - |    667149 ENSE00003554016
+##    ...      ...               ...    ... .       ...             ...
+##   [13]        X 99890555-99890743      - |    667156 ENSE00003512331
+##   [14]        X 99891188-99891686      - |    667158 ENSE00001886883
+##   [15]        X 99891605-99891803      - |    667159 ENSE00001855382
+##   [16]        X 99891790-99892101      - |    667160 ENSE00001863395
+##   [17]        X 99894942-99894988      - |    667161 ENSE00001828996
+##   -------
+##   seqinfo: 722 sequences (1 circular) from an unspecified genome
+## 
+## ...
+## &lt;64101 more elements&gt;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r &lt;-<span class="st"> </span><span class="kw">range</span>(<span class="kw">rowRanges</span>(airway))
+r</code></pre></div>
+<pre><code>## GRangesList object of length 64102:
+## $ENSG00000000003
+## GRanges object with 1 range and 0 metadata columns:
+##       seqnames            ranges strand
+##          &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt;
+##   [1]        X 99883667-99894988      -
+##   -------
+##   seqinfo: 722 sequences (1 circular) from an unspecified genome
+## 
+## $ENSG00000000005
+## GRanges object with 1 range and 0 metadata columns:
+##       seqnames            ranges strand
+##          &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt;
+##   [1]        X 99839799-99854882      +
+##   -------
+##   seqinfo: 722 sequences (1 circular) from an unspecified genome
+## 
+## $ENSG00000000419
+## GRanges object with 1 range and 0 metadata columns:
+##       seqnames            ranges strand
+##          &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt;
+##   [1]       20 49551404-49575092      -
+##   -------
+##   seqinfo: 722 sequences (1 circular) from an unspecified genome
+## 
+## ...
+## &lt;64099 more elements&gt;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r &lt;-<span class="st"> </span><span class="kw">unlist</span>(r)
+r </code></pre></div>
+<pre><code>## GRanges object with 64102 ranges and 0 metadata columns:
+##                   seqnames              ranges strand
+##                      &lt;Rle&gt;           &lt;IRanges&gt;  &lt;Rle&gt;
+##   ENSG00000000003        X   99883667-99894988      -
+##   ENSG00000000005        X   99839799-99854882      +
+##   ENSG00000000419       20   49551404-49575092      -
+##   ENSG00000000457        1 169818772-169863408      -
+##   ENSG00000000460        1 169631245-169823221      +
+##               ...      ...                 ...    ...
+##            LRG_94   LRG_94          5001-10428      +
+##            LRG_96   LRG_96          5001-91210      +
+##            LRG_97   LRG_97          5001-23996      +
+##            LRG_98   LRG_98          5001-16750      +
+##            LRG_99   LRG_99          4975-11294      +
+##   -------
+##   seqinfo: 722 sequences (1 circular) from an unspecified genome</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rowRanges</span>(airway) &lt;-<span class="st"> </span>r
+<span class="kw">rowRanges</span>(airway)</code></pre></div>
+<pre><code>## GRanges object with 64102 ranges and 0 metadata columns:
+##                   seqnames              ranges strand
+##                      &lt;Rle&gt;           &lt;IRanges&gt;  &lt;Rle&gt;
+##   ENSG00000000003        X   99883667-99894988      -
+##   ENSG00000000005        X   99839799-99854882      +
+##   ENSG00000000419       20   49551404-49575092      -
+##   ENSG00000000457        1 169818772-169863408      -
+##   ENSG00000000460        1 169631245-169823221      +
+##               ...      ...                 ...    ...
+##            LRG_94   LRG_94          5001-10428      +
+##            LRG_96   LRG_96          5001-91210      +
+##            LRG_97   LRG_97          5001-23996      +
+##            LRG_98   LRG_98          5001-16750      +
+##            LRG_99   LRG_99          4975-11294      +
+##   -------
+##   seqinfo: 722 sequences (1 circular) from an unspecified genome</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Add a <code>colData</code> column named <code>GROUP</code> to the <code>airway</code> dataset. This column should be a binary vector which indicates wether the cell lines have been treated with dexamethasone (1) or not (0).</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">airway<span class="op">$</span>GROUP &lt;-<span class="st"> </span><span class="kw">ifelse</span>(airway<span class="op">$</span>dex <span class="op">==</span><span class="st"> &quot;trt&quot;</span>, <span class="dv">1</span>, <span class="dv">0</span>)
+<span class="kw">colData</span>(airway) </code></pre></div>
+<pre><code>## DataFrame with 8 rows and 10 columns
+##            SampleName     cell      dex    albut        Run avgLength
+##              &lt;factor&gt; &lt;factor&gt; &lt;factor&gt; &lt;factor&gt;   &lt;factor&gt; &lt;integer&gt;
+## SRR1039508 GSM1275862  N61311     untrt    untrt SRR1039508       126
+## SRR1039509 GSM1275863  N61311     trt      untrt SRR1039509       126
+## SRR1039512 GSM1275866  N052611    untrt    untrt SRR1039512       126
+## SRR1039513 GSM1275867  N052611    trt      untrt SRR1039513        87
+## SRR1039516 GSM1275870  N080611    untrt    untrt SRR1039516       120
+## SRR1039517 GSM1275871  N080611    trt      untrt SRR1039517       126
+## SRR1039520 GSM1275874  N061011    untrt    untrt SRR1039520       101
+## SRR1039521 GSM1275875  N061011    trt      untrt SRR1039521        98
+##            Experiment    Sample    BioSample     GROUP
+##              &lt;factor&gt;  &lt;factor&gt;     &lt;factor&gt; &lt;numeric&gt;
+## SRR1039508  SRX384345 SRS508568 SAMN02422669         0
+## SRR1039509  SRX384346 SRS508567 SAMN02422675         1
+## SRR1039512  SRX384349 SRS508571 SAMN02422678         0
+## SRR1039513  SRX384350 SRS508572 SAMN02422670         1
+## SRR1039516  SRX384353 SRS508575 SAMN02422682         0
+## SRR1039517  SRX384354 SRS508576 SAMN02422673         1
+## SRR1039520  SRX384357 SRS508579 SAMN02422683         0
+## SRR1039521  SRX384358 SRS508580 SAMN02422677         1</code></pre>
+</div>
 </div>
 
 
@@ -330,6 +541,23 @@ $(document).ready(function () {
 
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

@@ -1,0 +1,207 @@
+---
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: false
+    toc_depth: 3
+    fig_width: 5
+vignette: >
+  %\VignetteIndexEntry{Rgraphics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding[utf8]{inputenc}  
+---
+
+# Visualizing genomic data
+
+There are (at least) two types of data visualization:
+
+- exploratory: raw, unpolished plots as part of data analysis and exploration
+- publication-ready: informative, clear, and visually attractive illustrations of
+results for showing to others
+
+Both of these types of visualizations can be made with R. 
+In fact, R offers multiple graphics systems. 
+This is because R is extensible, and because progress in R graphics over the 
+years has proceeded largely not by replacing the old functions, but by adding packages. 
+Each of the different graphics systems has its advantages and limitations. 
+
+In this section, we introduce two of them. 
+First, we have a cursory look at the base R plotting functions for data exploration.
+They live in the `graphics` package, which ships with every R installation.
+Subsequently, we introduce the `ggplot2` package for publication-ready high 
+quality graphics in R.
+
+
+## Base R graphics
+
+Base R graphics came historically first: simple, procedural, conceptually 
+motivated by drawing on a canvas.
+There are specialized functions for different types of plots such as `barplot`, 
+`boxplot`, and `hist`.
+The base R plotting functions are great for quick interactive data exploration.
+
+The most basic function is `plot`. 
+In the code below, we use it to plot data from an enzyme-linked immunosorbent 
+assay (ELISA) assay. The assay was used to quantify the activity of the enzyme 
+deoxyribonuclease (DNase), which degrades DNA. 
+The data is available as an R data object `DNase`, which comes with base R. 
+The object `DNase` is a `data.frame` whose columns are `Run`, the assay run;
+`conc`, the protein concentration that was used; and `density`, the measured 
+optical density.
+
+```{r}
+data(DNase)
+head(DNase)
+```
+
+```{r}
+plot(x=DNase$conc, y=DNase$density)
+```
+
+This basic plot can be customized, for example by changing the plot symbol and 
+axis labels using the parameters `xlab`, `ylab` and `pch` (plot character). 
+Information about the variables is stored in the object `DNase`, and we can 
+access it with the `attr` function.
+
+```{r}
+plot(DNase$conc, DNase$density,
+  ylab = attr(DNase, "labels")$y,
+  xlab = paste(attr(DNase, "labels")$x, attr(DNase, "units")$x),
+  pch = 3,
+  col = "blue")
+```
+
+Besides scatterplots, there are additional built-in functions functions for typical
+exploratory data visualizations such as histograms and boxplots.
+
+```{r}
+hist(DNase$density, breaks=25, main = "")
+boxplot(density ~ Run, data = DNase)
+```
+
+Boxplots are convenient for showing multiple distributions next to each other in
+a compact space.
+
+## ggplot2
+
+[ggplot2](https://ggplot2.tidyverse.org) is a package by Hadley Wickham
+that implements the idea of grammar of graphics – a concept created by Leland 
+Wilkinson in his eponymous [book](https://www.springer.com/gp/book/9780387245447).
+
+When compared to the concept of base R plotting, this is a more high-level approach: 
+in the grammar of graphics, graphics are built up from modular logical pieces, 
+so that we can easily try different visualization types for our data like switching 
+in and out parts of a sentence in human language. 
+There is no concept of a canvas or a plotter, rather, the user gives `ggplot2` a 
+high-level description of the desired plot, in the form of an R object, and the 
+rendering engine lays out the graphics and renders them on the output device. 
+
+Let’s start by loading the package and redoing the simple scatterplot for the 
+DNase experiment.
+
+```{r}
+library("ggplot2")
+ggplot(DNase, aes(x = conc, y = density)) + geom_point()
+```
+
+We just wrote our first “sentence” using the grammar of graphics. 
+Let’s deconstruct this sentence. First, we specified the data frame that contains
+the data, `DNase`. The `aes` (this stands for _aesthetic_) argument states which
+variables we want to see mapped to the _x_- and _y_-axes, respectively.
+Finally, we stated that we want the plot to use points (as opposed to, say, lines
+or bars), by adding the result of calling the function `geom_point`.
+
+We continue working with a gene expression microarray dataset that reports the 
+gene expression of around 100 individual cells from mouse embryos at different 
+time points in early development
+([Ohnishi et al., 2014](https://www.ncbi.nlm.nih.gov/pubmed/24292013)). 
+
+We load the data from the Bioconductor experimental data package 
+[Hiiragi2013](http://bioconductor.org/packages/Hiiragi2013).
+
+```{r, message=FALSE}
+library(Biobase)
+library(Hiiragi2013)
+
+data(x)
+eset <- x
+eset
+```
+
+The 101 columns of the `ExpressionSet` correspond to the samples (each of these 
+is a single cell), the 45,101 rows correspond to the genes probed by the array, 
+an [Affymetrix mouse4302 array](http://www.affymetrix.com/support/technical/byproduct.affx?product=moe430-20).
+
+Let’s have a look at what information is available about the samples.
+
+```{r}
+head(pData(eset), n = 2)
+```
+
+The information provided is a mix of information about the cells (i.e., age, 
+size and genotype of the embryo from which they were obtained) and technical 
+information (scan date, raw data file name). 
+By convention, time in the development of the mouse embryo is measured in days, 
+and reported as, for instance, `E3.5`. Moreover, in the paper the authors divided 
+the cells into 8 biological groups (`sampleGroup`), based on age, genotype and 
+lineage, and they defined a color scheme to represent these groups.
+
+We define a small `data.frame` that contains summary information for each group:
+the number of cells and the preferred color.
+ 
+```{r}
+grtab <- table(pData(eset)$sampleGroup)
+spl <- split(pData(eset)$sampleColour, pData(eset)$sampleGroup)
+grcol <- sapply(spl, function(x) x[1])
+groups <- data.frame(sampleGroup = names(grtab), 
+                    n = as.integer(grtab),
+                    color = grcol,
+                    stringsAsFactors=FALSE)
+groups
+```
+
+We plot the number of cells for each of the 8 groups using `ggplot`.
+
+```{r}
+ggplot(groups, aes(x = sampleGroup, y = n)) +
+  geom_bar(stat = "identity")
+```
+
+With `geom_bar` we now told ggplot that we want each data item (each row of groups) 
+to be represented by a bar. Bars are one example of geometric object (`geom` in 
+the `ggplot2` package’s parlance) that `ggplot` knows about. 
+We have already seen another such object: points, indicated by the `geom_point` 
+function.
+ 
+We provided the argument `stat = "identity"` (in other words, do nothing) to the
+`geom_bar` function, since otherwise it would try to compute a histogram of the 
+data (the default value of stat is `"count"`). `stat` is short for _statistic_, 
+which is what we call any function of data. Besides the identity and count
+statistic, there are others, such as smoothing, averaging, binning, or other
+operations that reduce the data in some way.
+
+These concepts -– data, geometrical objects, statistics -– are some of the 
+ingredients of the grammar of graphics, just as nouns, verbs and adverbs are 
+ingredients of an English sentence.
+
+To improve the barplot, we use color for the bars to indicate 
+which bar corresponds to which group. 
+For better readability of the bar labels, we rotate them by 45 degrees.
+ 
+```{r}
+ggplot(groups, aes(x = sampleGroup, y = n, fill = sampleGroup)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = grcol, name = "Groups") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+```
+
+## Exercises (10 min)
+
+1. Customize the base R boxplot displaying the density distribution for each run
+of the `DNAse` object. Order the boxes in numerical order along the $x$-axis 
+instead of lexicographical order (hint: `as.numeric`). Display each box with 
+a different color (hint: `rainbow`). 
+
+2. Customize the `ggplot2` barplot displaying the number of cells in each sample 
+group. Flip the $x$- and $y$-aesthetics to produce a horizontal barplot. 
+Rotate the group labels by 90 degrees.

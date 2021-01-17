@@ -162,3 +162,10 @@ aggregate(gr, ~ strand, n_score = lengths(score), mean_score = mean(score))
 Note that we need to call `lengths(score)` instead of `length(score)`
 because `score` is actually a list-like object in the aggregation
 expression.
+
+## Exercises (5 min)
+
+1. What are the chromosome lengths of the mouse `mm9` genome assembly?
+2. Split the GRanges object `gr` by chromosome, and compute the mean GC content for each chromosome.
+3. Install the TxDb package for the yeast (_Saccharomyces cerevisiae_) `sacCer3` genome assembly. How many genes are there on each chromosome?
+

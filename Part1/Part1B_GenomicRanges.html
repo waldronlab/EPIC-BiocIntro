@@ -332,22 +332,35 @@ cpg</code></pre></div>
 <p>Extract the coordinates of all transcripts</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tx &lt;-<span class="st"> </span><span class="kw">transcripts</span>(TxDb.Hsapiens.UCSC.hg38.knownGene)
 tx</code></pre></div>
-<pre><code>## GRanges object with 206694 ranges and 2 metadata columns:
-##            seqnames      ranges strand |     tx_id           tx_name
-##               &lt;Rle&gt;   &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt;       &lt;character&gt;
-##        [1]     chr1 11869-14409      + |         1 ENST00000456328.2
-##        [2]     chr1 12010-13670      + |         2 ENST00000450305.2
-##        [3]     chr1 29554-31097      + |         3 ENST00000473358.1
-##        [4]     chr1 30267-31109      + |         4 ENST00000469289.1
-##        [5]     chr1 30366-30503      + |         5 ENST00000607096.1
-##        ...      ...         ...    ... .       ...               ...
-##   [206690]     chrM   5826-5891      - |    206690 ENST00000387409.1
-##   [206691]     chrM   7446-7514      - |    206691 ENST00000387416.2
-##   [206692]     chrM 14149-14673      - |    206692 ENST00000361681.2
-##   [206693]     chrM 14674-14742      - |    206693 ENST00000387459.1
-##   [206694]     chrM 15956-16023      - |    206694 ENST00000387461.2
+<pre><code>## GRanges object with 226811 ranges and 2 metadata columns:
+##                    seqnames        ranges strand |     tx_id
+##                       &lt;Rle&gt;     &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt;
+##        [1]             chr1   11869-14409      + |         1
+##        [2]             chr1   12010-13670      + |         2
+##        [3]             chr1   29554-31097      + |         3
+##        [4]             chr1   30267-31109      + |         4
+##        [5]             chr1   30366-30503      + |         5
+##        ...              ...           ...    ... .       ...
+##   [226807] chrUn_GL000220v1 155997-156149      + |    226807
+##   [226808] chrUn_KI270442v1 380608-380726      + |    226808
+##   [226809] chrUn_KI270442v1 217250-217401      - |    226809
+##   [226810] chrUn_KI270744v1   51009-51114      - |    226810
+##   [226811] chrUn_KI270750v1 148668-148843      + |    226811
+##                      tx_name
+##                  &lt;character&gt;
+##        [1] ENST00000456328.2
+##        [2] ENST00000450305.2
+##        [3] ENST00000473358.1
+##        [4] ENST00000469289.1
+##        [5] ENST00000607096.1
+##        ...               ...
+##   [226807] ENST00000619779.1
+##   [226808] ENST00000620265.1
+##   [226809] ENST00000611690.1
+##   [226810] ENST00000616830.1
+##   [226811] ENST00000612925.1
 ##   -------
-##   seqinfo: 25 sequences (1 circular) from hg38 genome</code></pre>
+##   seqinfo: 595 sequences (1 circular) from hg38 genome</code></pre>
 <p>Keep only the standard chromosomes, to work smoothly with our <code>cpg</code> object.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tx &lt;-<span class="st"> </span><span class="kw">keepStandardChromosomes</span>(tx, <span class="dt">pruning.mode=</span><span class="st">&quot;coarse&quot;</span>)
 tx</code></pre></div>

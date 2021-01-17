@@ -364,6 +364,14 @@ se</code></pre></div>
 ## SRR1039517  SRX384354 SRS508576 SAMN02422673  30818215
 ## SRR1039520  SRX384357 SRS508579 SAMN02422683  19126151
 ## SRR1039521  SRX384358 SRS508580 SAMN02422677  21164133</code></pre>
+<p><strong>Exercises (15 min)</strong></p>
+<ol style="list-style-type: decimal">
+<li><p>Subset the <code>SummarizedExperiment</code> object <code>se</code> created above to genes (rows) with at least 8 reads mapped across all samples. Hint: use <code>rowSums</code>.</p></li>
+<li><p>Scale the read counts by library size, i.e. divide each column of <code>assay(se)</code> by the corresponding <code>lib.size</code> of each sample (column). Multiply the resulting scaled counts by <code>10^6</code> to obtain counts per million reads mapped.</p></li>
+<li><p>Subset the resulting <code>se</code> containing counts per million reads mapped to the first one hundred genes (<code>1:100</code>).</p></li>
+<li><p>Carry out a <em>t</em>-test for each of the selected 100 genes. Test for differences in mean read count per million reads mapped between the dexamethasone treated and untreated sample group. Annotate the resulting <em>p</em>-values as a new column in the <code>rowData</code> slot of your <code>SummarizedExperiment</code>.<br />
+Hint: use <code>apply</code> and <code>t.test</code>.</p></li>
+</ol>
 </div>
 
 

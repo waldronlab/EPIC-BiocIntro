@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -74,7 +74,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -131,7 +131,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -193,6 +192,7 @@ summary {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -204,18 +204,6 @@ summary {
   display: none;
 }
 </style>
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
 
 <!-- code folding -->
 
@@ -240,77 +228,499 @@ $(document).ready(function () {
 </div>
 
 
-<div id="downstream-analysis" class="section level1">
-<h1>Downstream analysis</h1>
-<p>In this section we look into downstream analysis of gene expression data, and the way in which skills learned in working with <em>Bioconductor</em> objects in one package translate to working with objects in other packages.</p>
-<p>We start by loading the <a href="https://bioconductor.org/packages/DESeq2">DESeq2</a> package, a very popular facility for analysing differential expression of bulk RNA-seq data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;DESeq2&quot;</span>)</code></pre></div>
-<p>The package requires count data like that in the <code>SummarizedExperiment</code> we have been working with, in addition to a <code>formula</code> describing the experimental design. We use the cell line as a covariate, and dexamethazone treatment as the main factor that we are interested in.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dds &lt;-<span class="st"> </span><span class="kw">DESeqDataSet</span>(se, <span class="dt">design =</span> <span class="op">~</span><span class="st"> </span>cell <span class="op">+</span><span class="st"> </span>dex)</code></pre></div>
-<pre><code>## renaming the first element in assays to 'counts'</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dds</code></pre></div>
-<pre><code>## class: DESeqDataSet 
-## dim: 33469 8 
-## metadata(1): version
-## assays(1): counts
-## rownames(33469): ENSG00000000003 ENSG00000000419 ...
-##   ENSG00000273492 ENSG00000273493
-## rowData names(0):
-## colnames(8): SRR1039508 SRR1039509 ... SRR1039520 SRR1039521
-## colData names(10): SampleName cell ... BioSample lib.size</code></pre>
-<p>The <code>dds</code> object can be manipulated very much like a <code>SummarizedExperiment</code>.</p>
-<p>The DESeq workflow is summarized by a single function call, which performs statistical analysis on the data in the <code>dds</code> object.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dds &lt;-<span class="st"> </span><span class="kw">DESeq</span>(dds)</code></pre></div>
-<pre><code>## estimating size factors</code></pre>
-<pre><code>## estimating dispersions</code></pre>
-<pre><code>## gene-wise dispersion estimates</code></pre>
-<pre><code>## mean-dispersion relationship</code></pre>
-<pre><code>## final dispersion estimates</code></pre>
-<pre><code>## fitting model and testing</code></pre>
-<p>A table summarizing measures of differential expression can be extracted from the object, and visualized or manipulated using commands we learned earlier today.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">results</span>(dds)</code></pre></div>
-<pre><code>## log2 fold change (MLE): dex untrt vs trt 
-## Wald test p-value: dex untrt vs trt 
-## DataFrame with 33469 rows and 6 columns
-##                          baseMean      log2FoldChange             lfcSE
-##                         &lt;numeric&gt;           &lt;numeric&gt;         &lt;numeric&gt;
-## ENSG00000000003  708.602169691234   0.381253982523043 0.100654411867396
-## ENSG00000000419  520.297900552084  -0.206812601085043 0.112218646508368
-## ENSG00000000457  237.163036796015 -0.0379204312050886 0.143444654933749
-## ENSG00000000460  57.9326331250967  0.0881681758708941 0.287141822933388
-## ENSG00000000938 0.318098378392895    1.37822703433214  3.49987280259267
-## ...                           ...                 ...               ...
-## ENSG00000273487   8.1632349843654   -1.04640654119471 0.698966822019962
-## ENSG00000273488  8.58447903624707  -0.107830154771013  0.63809903487588
-## ENSG00000273489 0.275899382507797   -1.48373838425916  3.51394583815493
-## ENSG00000273492 0.105978355992386   0.463679009985687  3.52308267589304
-## ENSG00000273493 0.106141666408122   0.521354507611989  3.53139024554344
-##                               stat               pvalue
-##                          &lt;numeric&gt;            &lt;numeric&gt;
-## ENSG00000000003   3.78775232451125 0.000152016273081244
-## ENSG00000000419  -1.84294328545142   0.0653372915124384
-## ENSG00000000457 -0.264355832725887    0.791505741607837
-## ENSG00000000460  0.307054454729667    0.758801923977348
-## ENSG00000000938  0.393793463954221    0.693733530342183
-## ...                            ...                  ...
-## ENSG00000273487   -1.4970761246874    0.134373451364789
-## ENSG00000273488 -0.168986550484264    0.865807220414777
-## ENSG00000273489 -0.422242815511986    0.672847792938571
-## ENSG00000273492  0.131611731157615    0.895291406125436
-## ENSG00000273493  0.147634351165219    0.882631343839791
-##                                padj
-##                           &lt;numeric&gt;
-## ENSG00000000003 0.00127423101782761
-## ENSG00000000419   0.195433088568711
-## ENSG00000000457   0.910602138768705
-## ENSG00000000460   0.893977566260607
-## ENSG00000000938                  NA
-## ...                             ...
-## ENSG00000273487   0.327756206300159
-## ENSG00000273488   0.944617232244068
-## ENSG00000273489                  NA
-## ENSG00000273492                  NA
-## ENSG00000273493                  NA</code></pre>
+<div id="solutions-for-part-2" class="section level1">
+<h1>Solutions for Part 2</h1>
+<div id="part-2b" class="section level2">
+<h2>Part 2B</h2>
+<ol style="list-style-type: decimal">
+<li>What are the chromosome lengths of the mouse <code>mm9</code> genome assembly?</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>Install the corresponding <code>TxDb</code> annotation package:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;TxDb.Mmusculus.UCSC.mm9.knownGene&quot;</span>)</code></pre></div>
+<ul>
+<li>Obtain the chromosome lengths directly from the <code>TxDb</code> object:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(TxDb.Mmusculus.UCSC.mm9.knownGene)
+<span class="kw">seqlengths</span>(TxDb.Mmusculus.UCSC.mm9.knownGene)</code></pre></div>
+<pre><code>##         chr1         chr2         chr3         chr4         chr5         chr6 
+##    197195432    181748087    159599783    155630120    152537259    149517037 
+##         chr7         chr8         chr9        chr10        chr11        chr12 
+##    152524553    131738871    124076172    129993255    121843856    121257530 
+##        chr13        chr14        chr15        chr16        chr17        chr18 
+##    120284312    125194864    103494974     98319150     95272651     90772031 
+##        chr19         chrX         chrY         chrM  chr1_random  chr3_random 
+##     61342430    166650296     15902555        16299      1231697        41899 
+##  chr4_random  chr5_random  chr7_random  chr8_random  chr9_random chr13_random 
+##       160594       357350       362490       849593       449403       400311 
+## chr16_random chr17_random  chrX_random  chrY_random chrUn_random 
+##         3994       628739      1785075     58682461      5900358</code></pre>
+<ul>
+<li>Another obtion would be to just say:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">seqlengths</span>(<span class="kw">Seqinfo</span>(<span class="dt">genome =</span> <span class="st">&quot;mm9&quot;</span>))</code></pre></div>
+<pre><code>##         chr1         chr2         chr3         chr4         chr5         chr6 
+##    197195432    181748087    159599783    155630120    152537259    149517037 
+##         chr7         chr8         chr9        chr10        chr11        chr12 
+##    152524553    131738871    124076172    129993255    121843856    121257530 
+##        chr13        chr14        chr15        chr16        chr17        chr18 
+##    120284312    125194864    103494974     98319150     95272651     90772031 
+##        chr19         chrX         chrY         chrM  chr1_random  chr3_random 
+##     61342430    166650296     15902555        16299      1231697        41899 
+##  chr4_random  chr5_random  chr7_random  chr8_random  chr9_random chr13_random 
+##       160594       357350       362490       849593       449403       400311 
+## chr16_random chr17_random  chrX_random  chrY_random chrUn_random 
+##         3994       628739      1785075     58682461      5900358</code></pre>
+<p>Other approaches to obtain chromosome lengths for a specific genome assembly are listed <a href="https://msmith.de/2019/06/05/chrom-lengths-in-bioc.html">here</a>.</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Split the GRanges object <code>gr</code> by chromosome, and compute the mean GC content for each chromosome.</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>create the object as outlined in Part 2A:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(
+    <span class="dt">seqnames =</span> <span class="kw">rep</span>(<span class="kw">c</span>(<span class="st">&quot;chr1&quot;</span>, <span class="st">&quot;chr2&quot;</span>, <span class="st">&quot;chr1&quot;</span>, <span class="st">&quot;chr3&quot;</span>), <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="dv">4</span>)),
+    <span class="dt">start =</span> <span class="kw">c</span>(<span class="dv">101</span>, <span class="dv">105</span>, <span class="dv">125</span>, <span class="dv">132</span>, <span class="dv">134</span>, <span class="dv">152</span>, <span class="dv">153</span>, <span class="dv">160</span>, <span class="dv">166</span>, <span class="dv">170</span>),
+    <span class="dt">end =</span> <span class="kw">c</span>(<span class="dv">104</span>, <span class="dv">120</span>, <span class="dv">133</span>, <span class="dv">132</span>, <span class="dv">155</span>, <span class="dv">154</span>, <span class="dv">159</span>, <span class="dv">166</span>, <span class="dv">171</span>, <span class="dv">190</span>),
+    <span class="dt">strand =</span> <span class="kw">rep</span>(<span class="kw">strand</span>(<span class="kw">c</span>(<span class="st">&quot;-&quot;</span>, <span class="st">&quot;+&quot;</span>, <span class="st">&quot;*&quot;</span>, <span class="st">&quot;+&quot;</span>, <span class="st">&quot;-&quot;</span>)), <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">2</span>)),
+    <span class="dt">score =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">10</span>,
+    <span class="dt">GC =</span> <span class="kw">seq</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dt">length=</span><span class="dv">10</span>),
+    <span class="dt">row.names =</span> <span class="kw">head</span>(letters, <span class="dv">10</span>))
+gr &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(df, <span class="dt">keep.extra.columns=</span><span class="ot">TRUE</span>)
+gr</code></pre></div>
+<pre><code>## GRanges object with 10 ranges and 2 metadata columns:
+##     seqnames    ranges strand |     score        GC
+##        &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;numeric&gt;
+##   a     chr1   101-104      - |         1  1.000000
+##   b     chr2   105-120      + |         2  0.888889
+##   c     chr2   125-133      + |         3  0.777778
+##   d     chr2       132      * |         4  0.666667
+##   e     chr1   134-155      * |         5  0.555556
+##   f     chr1   152-154      + |         6  0.444444
+##   g     chr3   153-159      + |         7  0.333333
+##   h     chr3   160-166      + |         8  0.222222
+##   i     chr3   166-171      - |         9  0.111111
+##   j     chr3   170-190      - |        10  0.000000
+##   -------
+##   seqinfo: 3 sequences from an unspecified genome; no seqlengths</code></pre>
+<ul>
+<li>split by chromosome</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">grl &lt;-<span class="st"> </span><span class="kw">split</span>(gr, <span class="op">~</span><span class="st"> </span>seqnames)
+grl</code></pre></div>
+<pre><code>## GRangesList object of length 3:
+## $chr1
+## GRanges object with 3 ranges and 2 metadata columns:
+##     seqnames    ranges strand |     score        GC
+##        &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;numeric&gt;
+##   a     chr1   101-104      - |         1  1.000000
+##   e     chr1   134-155      * |         5  0.555556
+##   f     chr1   152-154      + |         6  0.444444
+##   -------
+##   seqinfo: 3 sequences from an unspecified genome; no seqlengths
+## 
+## $chr2
+## GRanges object with 3 ranges and 2 metadata columns:
+##     seqnames    ranges strand |     score        GC
+##        &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;numeric&gt;
+##   b     chr2   105-120      + |         2  0.888889
+##   c     chr2   125-133      + |         3  0.777778
+##   d     chr2       132      * |         4  0.666667
+##   -------
+##   seqinfo: 3 sequences from an unspecified genome; no seqlengths
+## 
+## $chr3
+## GRanges object with 4 ranges and 2 metadata columns:
+##     seqnames    ranges strand |     score        GC
+##        &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;numeric&gt;
+##   g     chr3   153-159      + |         7  0.333333
+##   h     chr3   160-166      + |         8  0.222222
+##   i     chr3   166-171      - |         9  0.111111
+##   j     chr3   170-190      - |        10  0.000000
+##   -------
+##   seqinfo: 3 sequences from an unspecified genome; no seqlengths</code></pre>
+<ul>
+<li>compute the mean GC content for each chromosome:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sapply</span>(grl, <span class="cf">function</span>(g) <span class="kw">mean</span>(g<span class="op">$</span>GC))</code></pre></div>
+<pre><code>##      chr1      chr2      chr3 
+## 0.6666667 0.7777778 0.1666667</code></pre>
+<ul>
+<li>alternatively just:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">aggregate</span>(gr, GC <span class="op">~</span><span class="st"> </span>seqnames, mean)</code></pre></div>
+<pre><code>## DataFrame with 3 rows and 2 columns
+##   seqnames        GC
+##   &lt;factor&gt; &lt;numeric&gt;
+## 1     chr1  0.666667
+## 2     chr2  0.777778
+## 3     chr3  0.166667</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Install the TxDb package for the yeast (<em>Saccharomyces cerevisiae</em>) <code>sacCer3</code> genome assembly. How many genes are there on each chromosome?</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>Install the corresponding <code>TxDb</code> annotation package:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;TxDb.Scerevisiae.UCSC.sacCer3.sgdGene&quot;</span>)</code></pre></div>
+<ul>
+<li>Obtain the genes</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(TxDb.Scerevisiae.UCSC.sacCer3.sgdGene)
+genes &lt;-<span class="st"> </span><span class="kw">genes</span>(TxDb.Scerevisiae.UCSC.sacCer3.sgdGene)
+genes</code></pre></div>
+<pre><code>## GRanges object with 6534 ranges and 1 metadata column:
+##             seqnames        ranges strand |     gene_id
+##                &lt;Rle&gt;     &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;
+##       Q0010     chrM     3952-4415      + |       Q0010
+##       Q0032     chrM   11667-11957      + |       Q0032
+##       Q0055     chrM   13818-26701      + |       Q0055
+##       Q0075     chrM   24156-25255      + |       Q0075
+##       Q0080     chrM   27666-27812      + |       Q0080
+##         ...      ...           ...    ... .         ...
+##     YPR200C   chrXVI 939279-939671      - |     YPR200C
+##     YPR201W   chrXVI 939922-941136      + |     YPR201W
+##     YPR202W   chrXVI 943032-944188      + |     YPR202W
+##   YPR204C-A   chrXVI 946856-947338      - |   YPR204C-A
+##     YPR204W   chrXVI 944603-947701      + |     YPR204W
+##   -------
+##   seqinfo: 17 sequences (1 circular) from sacCer3 genome</code></pre>
+<ul>
+<li>Split by chromosome and count number of genes per chromosome:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">lengths</span>(<span class="kw">split</span>(genes, <span class="op">~</span><span class="st"> </span>seqnames))</code></pre></div>
+<pre><code>##    chrI   chrII  chrIII   chrIV    chrV   chrVI  chrVII chrVIII   chrIX    chrX 
+##     116     447     178     837     322     138     582     321     236     393 
+##   chrXI  chrXII chrXIII  chrXIV   chrXV  chrXVI    chrM 
+##     344     570     502     431     593     506      18</code></pre>
+</div>
+<div id="part-2c" class="section level2">
+<h2>Part 2C</h2>
+<ol style="list-style-type: decimal">
+<li>Generate a <code>GRanges</code> object that contains the promoters for all genes on chromosome 22 of the human <code>hg38</code> genome assembly. The promoter sequence should only contain the 1 kbp upstream region of each gene.</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>obtain genes on chromosome 22 of the human <code>hg38</code> genome assembly:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(TxDb.Hsapiens.UCSC.hg38.knownGene)
+hg38.genes &lt;-<span class="st"> </span><span class="kw">genes</span>(TxDb.Hsapiens.UCSC.hg38.knownGene)
+hg38.chr22.genes &lt;-<span class="st"> </span><span class="kw">subset</span>(hg38.genes, seqnames <span class="op">==</span><span class="st"> &quot;chr22&quot;</span>)
+hg38.chr22.genes</code></pre></div>
+<pre><code>## GRanges object with 583 ranges and 1 metadata column:
+##             seqnames            ranges strand |     gene_id
+##                &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;
+##   100113380    chr22 29333158-29333267      - |   100113380
+##   100126318    chr22 21652981-21653058      + |   100126318
+##   100128531    chr22 25102433-25112692      - |   100128531
+##   100128946    chr22 48866770-48898386      + |   100128946
+##   100130418    chr22 17036570-17060825      + |   100130418
+##         ...      ...               ...    ... .         ...
+##        9889    chr22 49853844-49890080      + |        9889
+##        9929    chr22 38685543-38701556      - |        9929
+##        9978    chr22 40951347-40973309      + |        9978
+##        9993    chr22 19036282-19122454      - |        9993
+##        9997    chr22 50523568-50526461      - |        9997
+##   -------
+##   seqinfo: 595 sequences (1 circular) from hg38 genome</code></pre>
+<ul>
+<li>generate promoter coordinates:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">proms &lt;-<span class="st"> </span><span class="kw">promoters</span>(hg38.chr22.genes, <span class="dt">upstream =</span> <span class="dv">1000</span>, <span class="dt">downstream =</span> <span class="dv">0</span>)
+proms</code></pre></div>
+<pre><code>## GRanges object with 583 ranges and 1 metadata column:
+##             seqnames            ranges strand |     gene_id
+##                &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;
+##   100113380    chr22 29333268-29334267      - |   100113380
+##   100126318    chr22 21651981-21652980      + |   100126318
+##   100128531    chr22 25112693-25113692      - |   100128531
+##   100128946    chr22 48865770-48866769      + |   100128946
+##   100130418    chr22 17035570-17036569      + |   100130418
+##         ...      ...               ...    ... .         ...
+##        9889    chr22 49852844-49853843      + |        9889
+##        9929    chr22 38701557-38702556      - |        9929
+##        9978    chr22 40950347-40951346      + |        9978
+##        9993    chr22 19122455-19123454      - |        9993
+##        9997    chr22 50526462-50527461      - |        9997
+##   -------
+##   seqinfo: 595 sequences (1 circular) from hg38 genome</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Reduce the set of promoters to a non-overlapping set of promoters.</li>
+</ol>
+<p>Solution:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">reduce</span>(proms)</code></pre></div>
+<pre><code>## GRanges object with 565 ranges and 0 metadata columns:
+##         seqnames            ranges strand
+##            &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt;
+##     [1]    chr22 11826523-11827522      +
+##     [2]    chr22 15527159-15528158      +
+##     [3]    chr22 15689026-15690025      +
+##     [4]    chr22 15745630-15746629      +
+##     [5]    chr22 15783959-15784958      +
+##     ...      ...               ...    ...
+##   [561]    chr22 50582966-50583965      -
+##   [562]    chr22 50601456-50602455      -
+##   [563]    chr22 50628174-50629173      -
+##   [564]    chr22 50738140-50739139      -
+##   [565]    chr22 50783664-50784663      -
+##   -------
+##   seqinfo: 595 sequences (1 circular) from hg38 genome</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Compare the gene coordinates of the human <code>hg19</code> and <code>hg38</code> genome assemblies on chromosome 22. Therefore, subset to genes on chromosome 22 that are annotated for both genome assemblies. Then, use <code>ranges</code> to extract the gene coordinates, and compute pairwise intersections between them. For how many genes is the intersection larger than zero?</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>obtain genes on chromosome 22 of the human <code>hg19</code> genome assembly:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(TxDb.Hsapiens.UCSC.hg19.knownGene)
+hg19.genes &lt;-<span class="st"> </span><span class="kw">genes</span>(TxDb.Hsapiens.UCSC.hg19.knownGene)
+hg19.chr22.genes &lt;-<span class="st"> </span><span class="kw">subset</span>(hg19.genes, seqnames <span class="op">==</span><span class="st"> &quot;chr22&quot;</span>)
+hg19.chr22.genes</code></pre></div>
+<pre><code>## GRanges object with 535 ranges and 1 metadata column:
+##             seqnames            ranges strand |     gene_id
+##                &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;
+##   100037417    chr22 24309026-24314748      + |   100037417
+##   100126318    chr22 22007270-22007347      + |   100126318
+##   100128531    chr22 25498384-25508659      - |   100128531
+##   100128946    chr22 49262582-49294198      + |   100128946
+##   100130418    chr22 17517460-17539682      + |   100130418
+##         ...      ...               ...    ... .         ...
+##        9889    chr22 50247497-50283726      + |        9889
+##        9929    chr22 39081548-39096459      - |        9929
+##        9978    chr22 41347351-41369019      + |        9978
+##        9993    chr22 19023795-19109967      - |        9993
+##        9997    chr22 50961997-50964905      - |        9997
+##   -------
+##   seqinfo: 93 sequences (1 circular) from hg19 genome</code></pre>
+<ul>
+<li>subset to genes that are annotated for both genome assemblies</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">isect &lt;-<span class="st"> </span><span class="kw">intersect</span>(<span class="kw">names</span>(hg19.chr22.genes), <span class="kw">names</span>(hg38.chr22.genes))
+<span class="kw">head</span>(isect)</code></pre></div>
+<pre><code>## [1] &quot;100126318&quot; &quot;100128531&quot; &quot;100128946&quot; &quot;100130418&quot; &quot;100130717&quot; &quot;100144603&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">hg19.chr22.genes &lt;-<span class="st"> </span>hg19.chr22.genes[isect]
+hg38.chr22.genes &lt;-<span class="st"> </span>hg38.chr22.genes[isect]</code></pre></div>
+<ul>
+<li>use <code>ranges</code> to extract the gene coordinates, and compute pairwise intersections between them</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pisect &lt;-<span class="st"> </span><span class="kw">pintersect</span>(<span class="kw">ranges</span>(hg19.chr22.genes), <span class="kw">ranges</span>(hg38.chr22.genes), <span class="dt">resolve.empty =</span> <span class="st">&quot;start.x&quot;</span>)</code></pre></div>
+<ul>
+<li>For how many genes is the intersection larger than zero?</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(<span class="kw">width</span>(pisect) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</code></pre></div>
+<pre><code>## [1] 22</code></pre>
+</div>
+<div id="part-2d" class="section level2">
+<h2>Part 2D</h2>
+<p>We consider the overlap of gene promoter regions and CpG islands in the human genome. We use the collection of CpG islands described in <a href="https://doi.org/10.1093/biostatistics/kxq005">Wu et al., 2010</a>.</p>
+<ol style="list-style-type: decimal">
+<li>Import the collection of CpG islands from <a href="http://www.haowulab.org/software/makeCGI/model-based-cpg-islands-hg19.txt">here</a> as a <code>GRanges</code>.</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>import the data as a <code>GRanges</code>:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">read.delim</span>(<span class="st">&quot;http://www.haowulab.org/software/makeCGI/model-based-cpg-islands-hg19.txt&quot;</span>)
+cpg &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(df, <span class="dt">keep.extra.columns =</span> <span class="ot">TRUE</span>)
+cpg</code></pre></div>
+<pre><code>## GRanges object with 65699 ranges and 5 metadata columns:
+##           seqnames            ranges strand |    length  CpGcount GCcontent
+##              &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;integer&gt; &lt;integer&gt;
+##       [1]    chr10       93098-93818      * |       721        32       403
+##       [2]    chr10       94002-94165      * |       164        12        97
+##       [3]    chr10       94527-95302      * |       776        65       538
+##       [4]    chr10     119652-120193      * |       542        53       369
+##       [5]    chr10     122133-122621      * |       489        51       339
+##       ...      ...               ...    ... .       ...       ...       ...
+##   [65695]     chrY 59213702-59214290      * |       589        43       366
+##   [65696]     chrY 59240512-59241057      * |       546        40       369
+##   [65697]     chrY 59348047-59348370      * |       324        17       193
+##   [65698]     chrY 59349137-59349565      * |       429        31       276
+##   [65699]     chrY 59361489-59362401      * |       913       128       650
+##               pctGC    obsExp
+##           &lt;numeric&gt; &lt;numeric&gt;
+##       [1]     0.559     0.572
+##       [2]     0.591     0.841
+##       [3]     0.693     0.702
+##       [4]     0.681     0.866
+##       [5]     0.693     0.880
+##       ...       ...       ...
+##   [65695]     0.621     0.765
+##   [65696]     0.676     0.643
+##   [65697]     0.596     0.593
+##   [65698]     0.643     0.700
+##   [65699]     0.712     1.108
+##   -------
+##   seqinfo: 81 sequences from an unspecified genome; no seqlengths</code></pre>
+<ul>
+<li>annotate genome and sort genomic coordinates:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">genome</span>(cpg) &lt;-<span class="st"> &quot;hg19&quot;</span>
+cpg &lt;-<span class="st"> </span><span class="kw">sort</span>(cpg)
+cpg</code></pre></div>
+<pre><code>## GRanges object with 65699 ranges and 5 metadata columns:
+##                 seqnames        ranges strand |    length  CpGcount GCcontent
+##                    &lt;Rle&gt;     &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;integer&gt; &lt;integer&gt;
+##       [1]           chr1   10497-11241      * |       745       110       549
+##       [2]           chr1   28705-29791      * |      1087       115       792
+##       [3]           chr1 135086-135805      * |       720        42       484
+##       [4]           chr1 136164-137362      * |      1199        71       832
+##       [5]           chr1 137665-138121      * |       457        22       301
+##       ...            ...           ...    ... .       ...       ...       ...
+##   [65695] chrUn_gl000243   29852-30145      * |       294        16       197
+##   [65696] chrUn_gl000243   30367-30685      * |       319        30       232
+##   [65697] chrUn_gl000244   15576-15797      * |       222        13       142
+##   [65698] chrUn_gl000244   15954-16668      * |       715        43       449
+##   [65699] chrUn_gl000244   17297-17767      * |       471        26       296
+##               pctGC    obsExp
+##           &lt;numeric&gt; &lt;numeric&gt;
+##       [1]     0.737     1.106
+##       [2]     0.729     0.818
+##       [3]     0.672     0.548
+##       [4]     0.694     0.524
+##       [5]     0.659     0.475
+##       ...       ...       ...
+##   [65695]     0.670     0.488
+##   [65696]     0.727     0.711
+##   [65697]     0.640     0.584
+##   [65698]     0.628     0.611
+##   [65699]     0.628     0.559
+##   -------
+##   seqinfo: 81 sequences from hg19 genome; no seqlengths</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Import the promoter regions in the <em>hg19</em> human genome assembly as available <a href="http://gattaca.imppc.org/regioner/data/UCSC.promoters.hg19.bed">here</a> as a <code>GRanges</code>.</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>import the data as a <code>GRanges</code>:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">read.delim</span>(<span class="st">&quot;http://gattaca.imppc.org/regioner/data/UCSC.promoters.hg19.bed&quot;</span>)
+proms &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(df, <span class="dt">keep.extra.columns =</span> <span class="ot">TRUE</span>)
+proms</code></pre></div>
+<pre><code>## GRanges object with 49049 ranges and 3 metadata columns:
+##           seqnames            ranges strand |          V4          V5
+##              &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt; &lt;character&gt;
+##       [1]     chr1        9873-12073      * |         TSS           .
+##       [2]     chr1       67090-69290      * |         TSS           .
+##       [3]     chr1     319083-321283      * |         TSS           .
+##       [4]     chr1     319145-321345      * |         TSS           .
+##       [5]     chr1     320036-322236      * |         TSS           .
+##       ...      ...               ...    ... .         ...         ...
+##   [49045]     chrY 27605478-27607678      * |         TSS           .
+##   [49046]     chrY 27606221-27608421      * |         TSS           .
+##   [49047]     chrY 27607232-27609432      * |         TSS           .
+##   [49048]     chrY 27635754-27637954      * |         TSS           .
+##   [49049]     chrY 59360654-59362854      * |         TSS           .
+##                    V6
+##           &lt;character&gt;
+##       [1]           +
+##       [2]           +
+##       [3]           +
+##       [4]           +
+##       [5]           +
+##       ...         ...
+##   [49045]           -
+##   [49046]           -
+##   [49047]           -
+##   [49048]           -
+##   [49049]           -
+##   -------
+##   seqinfo: 24 sequences from an unspecified genome; no seqlengths</code></pre>
+<ul>
+<li>annotate genome and sort genomic coordinates:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">genome</span>(proms) &lt;-<span class="st"> &quot;hg19&quot;</span>
+proms &lt;-<span class="st"> </span><span class="kw">sort</span>(proms)
+proms</code></pre></div>
+<pre><code>## GRanges object with 49049 ranges and 3 metadata columns:
+##           seqnames            ranges strand |          V4          V5
+##              &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt; &lt;character&gt;
+##       [1]     chr1        9873-12073      * |         TSS           .
+##       [2]     chr1       16565-18765      * |         TSS           .
+##       [3]     chr1       17551-19751      * |         TSS           .
+##       [4]     chr1       17861-20061      * |         TSS           .
+##       [5]     chr1       19559-21759      * |         TSS           .
+##       ...      ...               ...    ... .         ...         ...
+##   [49045]     chrY 59211948-59214148      * |         TSS           .
+##   [49046]     chrY 59328251-59330451      * |         TSS           .
+##   [49047]     chrY 59350972-59353172      * |         TSS           .
+##   [49048]     chrY 59352984-59355184      * |         TSS           .
+##   [49049]     chrY 59360654-59362854      * |         TSS           .
+##                    V6
+##           &lt;character&gt;
+##       [1]           +
+##       [2]           -
+##       [3]           -
+##       [4]           -
+##       [5]           -
+##       ...         ...
+##   [49045]           +
+##   [49046]           +
+##   [49047]           +
+##   [49048]           +
+##   [49049]           -
+##   -------
+##   seqinfo: 24 sequences from hg19 genome; no seqlengths</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Determine the percentage of promoters on chromosome 21 that overlap with at least one CpG island.</li>
+</ol>
+<p>Solution:</p>
+<ul>
+<li>determine for each promoter on chromosome 21 the number of overlapping CpG islands</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">chr21.cpg &lt;-<span class="st"> </span><span class="kw">subset</span>(cpg, seqnames <span class="op">==</span><span class="st"> &quot;chr21&quot;</span>)
+chr21.proms &lt;-<span class="st"> </span><span class="kw">subset</span>(proms, seqnames <span class="op">==</span><span class="st"> &quot;chr21&quot;</span>)
+olaps &lt;-<span class="st"> </span><span class="kw">countOverlaps</span>(chr21.proms, chr21.cpg)
+<span class="kw">head</span>(olaps)</code></pre></div>
+<pre><code>## [1] 0 0 0 1 1 1</code></pre>
+<ul>
+<li>percentage of promoters that overlap with at least one CpG island:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(olaps <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>) <span class="op">/</span><span class="st"> </span><span class="kw">length</span>(chr21.proms) <span class="op">*</span><span class="st"> </span><span class="dv">100</span> </code></pre></div>
+<pre><code>## [1] 46.07509</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>For those promoters that overlap with CpG islands, annotate the number of overlapping CpG islands as an additional column.</li>
+</ol>
+<p>Solution:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">chr21.proms.with.cpg &lt;-<span class="st"> </span><span class="kw">subsetByOverlaps</span>(chr21.proms, chr21.cpg)
+chr21.proms.with.cpg<span class="op">$</span>nr.cpg &lt;-<span class="st"> </span>olaps[olaps <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>]
+chr21.proms.with.cpg</code></pre></div>
+<pre><code>## GRanges object with 270 ranges and 4 metadata columns:
+##         seqnames            ranges strand |          V4          V5          V6
+##            &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt; &lt;character&gt; &lt;character&gt;
+##     [1]    chr21   9823459-9825659      * |         TSS           .           +
+##     [2]    chr21   9823831-9826031      * |         TSS           .           +
+##     [3]    chr21   9824202-9826402      * |         TSS           .           +
+##     [4]    chr21   9968393-9970593      * |         TSS           .           -
+##     [5]    chr21 10597242-10599442      * |         TSS           .           -
+##     ...      ...               ...    ... .         ...         ...         ...
+##   [266]    chr21 47743585-47745785      * |         TSS           .           -
+##   [267]    chr21 47744224-47746424      * |         TSS           .           -
+##   [268]    chr21 47876861-47879061      * |         TSS           .           +
+##   [269]    chr21 47970823-47973023      * |         TSS           .           +
+##   [270]    chr21 48053506-48055706      * |         TSS           .           +
+##            nr.cpg
+##         &lt;integer&gt;
+##     [1]         1
+##     [2]         1
+##     [3]         1
+##     [4]         1
+##     [5]         2
+##     ...       ...
+##   [266]         1
+##   [267]         1
+##   [268]         1
+##   [269]         1
+##   [270]         1
+##   -------
+##   seqinfo: 24 sequences from hg19 genome; no seqlengths</code></pre>
+<p>What is the maximum number of overlapping CpG islands for one promoter at a time?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">max</span>(chr21.proms.with.cpg<span class="op">$</span>nr.cpg)</code></pre></div>
+<pre><code>## [1] 3</code></pre>
+</div>
 </div>
 
 
@@ -330,6 +740,23 @@ $(document).ready(function () {
 
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

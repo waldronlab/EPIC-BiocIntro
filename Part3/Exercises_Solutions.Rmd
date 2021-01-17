@@ -1,0 +1,153 @@
+---
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: false
+    toc_depth: 3
+    fig_width: 5
+vignette: >
+  %\VignetteIndexEntry{Exercises and Solutions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding[utf8]{inputenc}  
+---
+
+# Solutions for Part 3A
+
+## Part 3A
+
+1. Install the [ALL](https://bioconductor.org/packages/ALL) experimental data package.
+Load the dataset and extract the following information about the experiment: how many features and how many samples are measured? Which additional characteristics are annotated for the samples? Which microarray platform has been used (microarry chip ID)? Where has the experiment been conducted and which PUBMED IDs can be consulted for more information?
+
+Solution:
+
+- Install the package
+```{r, eval = FALSE}
+BiocManager::install("ALL")
+```
+
+- Load the package and the contained dataset
+```{r, message = FALSE}
+library(ALL)
+data(ALL)
+ALL
+```
+
+- how many features and how many samples are measured?
+
+```{r}
+dim(ALL)
+```
+
+- which additional characteristics are annotated for the samples?
+
+```{r}
+colnames(pData(ALL))
+```
+
+- which microarray platform has been used (microarry chip ID)?
+
+```{r}
+annotation(ALL)
+```
+
+- where has the experiment been conducted and which PUBMED IDs can be consulted for more information?
+
+```{r}
+experimentData(ALL)
+```
+
+2. Install the [EnrichmentBrowser](https://bioconductor.org/packages/EnrichmentBrowser) package. The package implements a function `probe2gene` that allows to easily summarize microarray probe level expression to gene level expression (as described in the vignette, Section 3.1). Use the function to summarize the expression levels for the ALL dataset. How many genes are contained in the summarized dataset? 
+
+Solution:
+
+- Install the package
+```{r, eval = FALSE}
+BiocManager::install("EnrichmentBrowser")
+```
+
+- Load the package 
+```{r, message = FALSE}
+library(EnrichmentBrowser)
+```
+
+- use the function to summarize the expression levels for the ALL dataset.
+```{r}
+gene.eset <- probe2gene(ALL)
+gene.eset
+```
+
+- how many genes are contained in the summarized dataset?
+```{r}
+nrow(gene.eset)
+```
+
+3. Install the [curatedMetagenomicData](https://bioconductor.org/packages/curatedMetagenomicData) package. The package contains whole-metagenome sequencing datasets for thousands of human microbiome samples, and demonstrates the usage of `ExpressionSet` for microbiome data. Section 3 of the vignette describes how to access individual datasets. Follow the description to obtain the `ZellerG_2014` dataset. What is the mean age of the patients studied in the dataset? Which diseases are monitored in this experiment?
+
+- Install the package
+```{r, eval = FALSE}
+BiocManager::install("curatedMetagenomicData")
+```
+
+- Load the package 
+```{r, message = FALSE}
+library(curatedMetagenomicData)
+```
+
+- Follow the description to obtain the `ZellerG_2014` dataset.
+```{r, message = FALSE}
+zeller.eset <- ZellerG_2014.metaphlan_bugs_list.stool()
+zeller.eset
+```
+
+- What is the mean age of the patients studied in the dataset?
+```{r}
+mean(zeller.eset$age)
+```
+
+- Which diseases are monitored in this experiment?
+```{r}
+table(zeller.eset$disease)
+```
+
+(CRC = colorectal cancer)
+
+## Part 3B
+
+1. Use the `GEOquery` package to download [GSE5859](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE5859)
+ as an `ExpressionSet`, and transform it into a `SummarizedExperiment`.
+
+```{r, message = FALSE}
+library(GEOquery)
+gse <- getGEO("GSE5859")[[1]]
+gse
+se <- as(gse, "SummarizedExperiment")
+se
+```
+
+2. The `rowRanges` of the `airway` dataset are stored in a `GRangesList`, which contains the exon coordinates
+for each gene. Use the `range` function to determine the region covered by exons for each gene.
+Use `unlist` on the resulting `GRangesList` to convert it into a `GRanges`, and 
+replace the `rowRanges` of `airway` with it. 
+
+```{r, message = FALSE}
+library(airway)
+data(airway)
+rowRanges(airway)
+r <- range(rowRanges(airway))
+r
+r <- unlist(r)
+r 
+rowRanges(airway) <- r
+rowRanges(airway)
+```
+
+3. Add a `colData` column named `GROUP` to the `airway` dataset. This column should
+be a binary vector which indicates wether the cell lines have been treated with 
+dexamethasone (1) or not (0).
+
+```{r}
+airway$GROUP <- ifelse(airway$dex == "trt", 1, 0)
+colData(airway) 
+```
+
+

@@ -116,3 +116,22 @@ As with `GRanges`, it might be useful to remember important computations in a wa
 se$lib.size <- colSums(assay(se))
 colData(se)
 ```
+
+**Exercises (15 min)**
+
+1. Subset the `SummarizedExperiment` object `se` created above to genes (rows) 
+with at least 8 reads mapped across all samples. Hint: use `rowSums`.
+
+2. Scale the read counts by library size, i.e. divide each column of `assay(se)`
+by the corresponding `lib.size` of each sample (column). 
+Multiply the resulting scaled counts by `10^6` to obtain counts per million reads mapped.
+
+3. Subset the resulting `se` containing counts per million reads mapped to the first one hundred genes (`1:100`).
+
+4. Carry out a _t_-test for each of the selected 100 genes. 
+Test for differences in mean read count per million reads mapped between the 
+dexamethasone treated and untreated sample group.
+Annotate the resulting _p_-values as a new column in the `rowData` slot of your
+`SummarizedExperiment`.   
+Hint: use `apply` and `t.test`.
+

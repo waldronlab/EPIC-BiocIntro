@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -74,7 +74,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -131,7 +131,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -193,6 +192,7 @@ summary {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -204,18 +204,6 @@ summary {
   display: none;
 }
 </style>
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
 
 <!-- code folding -->
 
@@ -240,77 +228,236 @@ $(document).ready(function () {
 </div>
 
 
-<div id="downstream-analysis" class="section level1">
-<h1>Downstream analysis</h1>
-<p>In this section we look into downstream analysis of gene expression data, and the way in which skills learned in working with <em>Bioconductor</em> objects in one package translate to working with objects in other packages.</p>
-<p>We start by loading the <a href="https://bioconductor.org/packages/DESeq2">DESeq2</a> package, a very popular facility for analysing differential expression of bulk RNA-seq data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;DESeq2&quot;</span>)</code></pre></div>
-<p>The package requires count data like that in the <code>SummarizedExperiment</code> we have been working with, in addition to a <code>formula</code> describing the experimental design. We use the cell line as a covariate, and dexamethazone treatment as the main factor that we are interested in.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dds &lt;-<span class="st"> </span><span class="kw">DESeqDataSet</span>(se, <span class="dt">design =</span> <span class="op">~</span><span class="st"> </span>cell <span class="op">+</span><span class="st"> </span>dex)</code></pre></div>
-<pre><code>## renaming the first element in assays to 'counts'</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dds</code></pre></div>
-<pre><code>## class: DESeqDataSet 
+<div id="solutions-for-part-1" class="section level1">
+<h1>Solutions for Part 1</h1>
+<div id="part-1a" class="section level2">
+<h2>Part 1A</h2>
+<p>Use <code>BiocManager</code> to install the <code>DESeq2</code> package.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;DESeq2&quot;</span>)</code></pre></div>
+<p>To which category of Bioconductor packages does <code>DESeq2</code> belong?</p>
+<ul>
+<li>Software packages.</li>
+</ul>
+<p>Screening through the vignette of the <code>DESeq2</code> package: what is the main purpose of the package?</p>
+<ul>
+<li>Differential expression analysis for RNA-seq data.</li>
+</ul>
+</div>
+<div id="part-1b" class="section level2">
+<h2>Part 1B</h2>
+<p>What is the maximum number of exons per transcript on chromosome 1 of the hg38 genome assembly?</p>
+<p>Hints:</p>
+<ol style="list-style-type: decimal">
+<li>The <code>exons</code> function extracts exon coordinates from a TxDb object.</li>
+<li>The <code>exons</code> function has an argument <code>columns</code> that can be used to obtain the transcript ID (<code>tx_id</code>) and/or transcript name (<code>tx_name</code>) for each exon.</li>
+</ol>
+<p>Solution:</p>
+<ol style="list-style-type: decimal">
+<li>Install the corresponding TxDb package</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BiocManager<span class="op">::</span><span class="kw">install</span>(<span class="st">&quot;TxDb.Hsapiens.UCSC.hg38.knownGene&quot;</span>)</code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>Obtain the exon information</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(TxDb.Hsapiens.UCSC.hg38.knownGene)
+ex &lt;-<span class="st"> </span><span class="kw">exons</span>(TxDb.Hsapiens.UCSC.hg38.knownGene, <span class="dt">columns =</span> <span class="kw">c</span>(<span class="st">&quot;tx_id&quot;</span>, <span class="st">&quot;tx_name&quot;</span>))
+ex</code></pre></div>
+<pre><code>## GRanges object with 687521 ranges and 2 metadata columns:
+##                    seqnames        ranges strand |         tx_id
+##                       &lt;Rle&gt;     &lt;IRanges&gt;  &lt;Rle&gt; | &lt;IntegerList&gt;
+##        [1]             chr1   11869-12227      + |             1
+##        [2]             chr1   12010-12057      + |             2
+##        [3]             chr1   12179-12227      + |             2
+##        [4]             chr1   12613-12697      + |             2
+##        [5]             chr1   12613-12721      + |             1
+##        ...              ...           ...    ... .           ...
+##   [687517] chrUn_GL000220v1 155997-156149      + |        247537
+##   [687518] chrUn_KI270442v1 380608-380726      + |        247538
+##   [687519] chrUn_KI270442v1 217250-217401      - |        247539
+##   [687520] chrUn_KI270744v1   51009-51114      - |        247540
+##   [687521] chrUn_KI270750v1 148668-148843      + |        247541
+##                      tx_name
+##              &lt;CharacterList&gt;
+##        [1] ENST00000456328.2
+##        [2] ENST00000450305.2
+##        [3] ENST00000450305.2
+##        [4] ENST00000450305.2
+##        [5] ENST00000456328.2
+##        ...               ...
+##   [687517] ENST00000619779.1
+##   [687518] ENST00000620265.1
+##   [687519] ENST00000611690.1
+##   [687520] ENST00000616830.1
+##   [687521] ENST00000612925.1
+##   -------
+##   seqinfo: 595 sequences (1 circular) from hg38 genome</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Subset to chromosome 1</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ex &lt;-<span class="st"> </span><span class="kw">subset</span>(ex, seqnames <span class="op">==</span><span class="st"> &quot;chr1&quot;</span>)
+ex</code></pre></div>
+<pre><code>## GRanges object with 58111 ranges and 2 metadata columns:
+##           seqnames              ranges strand |         tx_id
+##              &lt;Rle&gt;           &lt;IRanges&gt;  &lt;Rle&gt; | &lt;IntegerList&gt;
+##       [1]     chr1         11869-12227      + |             1
+##       [2]     chr1         12010-12057      + |             2
+##       [3]     chr1         12179-12227      + |             2
+##       [4]     chr1         12613-12697      + |             2
+##       [5]     chr1         12613-12721      + |             1
+##       ...      ...                 ...    ... .           ...
+##   [58107]     chr1 248858918-248859116      - |         19909
+##   [58108]     chr1 248859015-248859072      - |         19908
+##   [58109]     chr1 248859015-248859085      - |   19887,19905
+##   [58110]     chr1 248859015-248859144      - |         19913
+##   [58111]     chr1 248912690-248912795      - |         19915
+##                                       tx_name
+##                               &lt;CharacterList&gt;
+##       [1]                   ENST00000456328.2
+##       [2]                   ENST00000450305.2
+##       [3]                   ENST00000450305.2
+##       [4]                   ENST00000450305.2
+##       [5]                   ENST00000456328.2
+##       ...                                 ...
+##   [58107]                   ENST00000483791.6
+##   [58108]                   ENST00000534660.5
+##   [58109] ENST00000366471.7,ENST00000528141.5
+##   [58110]                   ENST00000534456.1
+##   [58111]                   ENST00000363625.1
+##   -------
+##   seqinfo: 595 sequences (1 circular) from hg38 genome</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Table and sort exons per transcript:</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tab &lt;-<span class="st"> </span><span class="kw">table</span>(<span class="kw">unlist</span>(ex<span class="op">$</span>tx_name))
+tab &lt;-<span class="st"> </span><span class="kw">sort</span>(tab, <span class="dt">decreasing =</span> <span class="ot">TRUE</span>)
+<span class="kw">head</span>(tab)</code></pre></div>
+<pre><code>## 
+## ENST00000369373.9 ENST00000392971.6 ENST00000570156.6 ENST00000366707.9 
+##               138               138               116               115 
+## ENST00000662438.1 ENST00000271588.9 
+##               110               107</code></pre>
+<p>The maximum number of exons per transcript on chromosome 1 is 138 (which is the case for transcripts ENST00000369373.9 and ENST00000392971.6).</p>
+</div>
+<div id="part-1c" class="section level2">
+<h2>Part 1C</h2>
+<ol style="list-style-type: decimal">
+<li>Subset the <code>SummarizedExperiment</code> object <code>se</code> created above to genes (rows) with at least 8 reads mapped across all samples. Hint: use <code>rowSums</code>.</li>
+</ol>
+<p>Solution:</p>
+<p>Create the <code>SummarizedExperiment</code> as demonstrated in the vignette of Part 1C.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(SummarizedExperiment)
+colData &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;files/airway_colData.csv&quot;</span>, <span class="dt">row.names =</span> <span class="dv">1</span>)
+counts &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;files/airway_counts.csv&quot;</span>, <span class="dt">row.names =</span> <span class="dv">1</span>)
+counts &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(counts)
+se &lt;-<span class="st"> </span><span class="kw">SummarizedExperiment</span>(<span class="dt">assay =</span> <span class="kw">list</span>(<span class="dt">count=</span>counts), <span class="dt">colData =</span> colData)
+se<span class="op">$</span>lib.size &lt;-<span class="st"> </span><span class="kw">colSums</span>(<span class="kw">assay</span>(se))
+se</code></pre></div>
+<pre><code>## class: SummarizedExperiment 
 ## dim: 33469 8 
-## metadata(1): version
-## assays(1): counts
-## rownames(33469): ENSG00000000003 ENSG00000000419 ...
-##   ENSG00000273492 ENSG00000273493
+## metadata(0):
+## assays(1): count
+## rownames(33469): ENSG00000000003 ENSG00000000419 ... ENSG00000273492
+##   ENSG00000273493
 ## rowData names(0):
 ## colnames(8): SRR1039508 SRR1039509 ... SRR1039520 SRR1039521
 ## colData names(10): SampleName cell ... BioSample lib.size</code></pre>
-<p>The <code>dds</code> object can be manipulated very much like a <code>SummarizedExperiment</code>.</p>
-<p>The DESeq workflow is summarized by a single function call, which performs statistical analysis on the data in the <code>dds</code> object.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dds &lt;-<span class="st"> </span><span class="kw">DESeq</span>(dds)</code></pre></div>
-<pre><code>## estimating size factors</code></pre>
-<pre><code>## estimating dispersions</code></pre>
-<pre><code>## gene-wise dispersion estimates</code></pre>
-<pre><code>## mean-dispersion relationship</code></pre>
-<pre><code>## final dispersion estimates</code></pre>
-<pre><code>## fitting model and testing</code></pre>
-<p>A table summarizing measures of differential expression can be extracted from the object, and visualized or manipulated using commands we learned earlier today.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">results</span>(dds)</code></pre></div>
-<pre><code>## log2 fold change (MLE): dex untrt vs trt 
-## Wald test p-value: dex untrt vs trt 
-## DataFrame with 33469 rows and 6 columns
-##                          baseMean      log2FoldChange             lfcSE
-##                         &lt;numeric&gt;           &lt;numeric&gt;         &lt;numeric&gt;
-## ENSG00000000003  708.602169691234   0.381253982523043 0.100654411867396
-## ENSG00000000419  520.297900552084  -0.206812601085043 0.112218646508368
-## ENSG00000000457  237.163036796015 -0.0379204312050886 0.143444654933749
-## ENSG00000000460  57.9326331250967  0.0881681758708941 0.287141822933388
-## ENSG00000000938 0.318098378392895    1.37822703433214  3.49987280259267
-## ...                           ...                 ...               ...
-## ENSG00000273487   8.1632349843654   -1.04640654119471 0.698966822019962
-## ENSG00000273488  8.58447903624707  -0.107830154771013  0.63809903487588
-## ENSG00000273489 0.275899382507797   -1.48373838425916  3.51394583815493
-## ENSG00000273492 0.105978355992386   0.463679009985687  3.52308267589304
-## ENSG00000273493 0.106141666408122   0.521354507611989  3.53139024554344
-##                               stat               pvalue
-##                          &lt;numeric&gt;            &lt;numeric&gt;
-## ENSG00000000003   3.78775232451125 0.000152016273081244
-## ENSG00000000419  -1.84294328545142   0.0653372915124384
-## ENSG00000000457 -0.264355832725887    0.791505741607837
-## ENSG00000000460  0.307054454729667    0.758801923977348
-## ENSG00000000938  0.393793463954221    0.693733530342183
-## ...                            ...                  ...
-## ENSG00000273487   -1.4970761246874    0.134373451364789
-## ENSG00000273488 -0.168986550484264    0.865807220414777
-## ENSG00000273489 -0.422242815511986    0.672847792938571
-## ENSG00000273492  0.131611731157615    0.895291406125436
-## ENSG00000273493  0.147634351165219    0.882631343839791
-##                                padj
-##                           &lt;numeric&gt;
-## ENSG00000000003 0.00127423101782761
-## ENSG00000000419   0.195433088568711
-## ENSG00000000457   0.910602138768705
-## ENSG00000000460   0.893977566260607
-## ENSG00000000938                  NA
-## ...                             ...
-## ENSG00000273487   0.327756206300159
-## ENSG00000273488   0.944617232244068
-## ENSG00000273489                  NA
-## ENSG00000273492                  NA
-## ENSG00000273493                  NA</code></pre>
+<p>Subset to genes with at least 8 reads mapped across samples.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">se &lt;-<span class="st"> </span><span class="kw">subset</span>(se, <span class="kw">rowSums</span>(<span class="kw">assay</span>(se)) <span class="op">&gt;=</span><span class="st"> </span><span class="dv">8</span>, )
+se </code></pre></div>
+<pre><code>## class: SummarizedExperiment 
+## dim: 23171 8 
+## metadata(0):
+## assays(1): count
+## rownames(23171): ENSG00000000003 ENSG00000000419 ... ENSG00000273487
+##   ENSG00000273488
+## rowData names(0):
+## colnames(8): SRR1039508 SRR1039509 ... SRR1039520 SRR1039521
+## colData names(10): SampleName cell ... BioSample lib.size</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Scale the read counts by library size, i.e. divide each column of <code>assay(se)</code> by the corresponding <code>lib.size</code> of each sample (column). Multiply the resulting scaled counts by <code>10^6</code> to obtain counts per million reads mapped.</li>
+</ol>
+<p>Solution:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">assay</span>(se) &lt;-<span class="st"> </span><span class="kw">sweep</span>(<span class="kw">assay</span>(se), <span class="dv">2</span>, <span class="dt">FUN =</span> <span class="st">&quot;/&quot;</span>, <span class="dt">STATS =</span> se<span class="op">$</span>lib.size)
+<span class="kw">assay</span>(se) &lt;-<span class="st"> </span><span class="kw">assay</span>(se) <span class="op">*</span><span class="st"> </span><span class="dv">10</span><span class="op">^</span><span class="dv">6</span>
+<span class="kw">head</span>(<span class="kw">assay</span>(se)) </code></pre></div>
+<pre><code>##                 SRR1039508 SRR1039509 SRR1039512 SRR1039513 SRR1039516
+## ENSG00000000003  32.900521  23.817776  34.439705  26.906868  46.546998
+## ENSG00000000419  22.628193  27.379809  24.498347  24.071095  24.009743
+## ENSG00000000457  12.598138  11.217747  10.375306  10.815506  10.021102
+## ENSG00000000460   2.907263   2.924057   1.577993   2.308187   3.190392
+## ENSG00000000971 157.525175 195.592850 243.681626 280.411767 274.905425
+## ENSG00000001036  69.435120  56.460888  68.366563  58.100369  58.245101
+##                 SRR1039517 SRR1039520 SRR1039521
+## ENSG00000000003  33.973415  40.259015  27.026857
+## ENSG00000000419  25.926226  21.802609  24.002873
+## ENSG00000000457  10.740401  12.182273  10.820193
+## ENSG00000000460   2.044246   3.973617   2.834985
+## ENSG00000000971 357.807874 270.624236 377.761754
+## ENSG00000001036  46.693165  71.054547  52.399973</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Subset the resulting <code>se</code> containing counts per million reads mapped to the first one hundred genes (<code>1:100</code>).</li>
+</ol>
+<p>Solution:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">se &lt;-<span class="st"> </span>se[<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>,]
+se</code></pre></div>
+<pre><code>## class: SummarizedExperiment 
+## dim: 100 8 
+## metadata(0):
+## assays(1): count
+## rownames(100): ENSG00000000003 ENSG00000000419 ... ENSG00000005955
+##   ENSG00000005961
+## rowData names(0):
+## colnames(8): SRR1039508 SRR1039509 ... SRR1039520 SRR1039521
+## colData names(10): SampleName cell ... BioSample lib.size</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Carry out a <em>t</em>-test for each of the selected 100 genes. Test for differences in mean read count per million reads mapped between the dexamethasone treated and untreated sample group. Annotate the resulting <em>p</em>-values as a new column in the <code>rowData</code> slot of your <code>SummarizedExperiment</code>.<br />
+Hint: use <code>apply</code> and <code>t.test</code>.</li>
+</ol>
+<p>Solution:</p>
+<p>Define a function that tests one gene (one row) at a time:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dex &lt;-<span class="st"> </span>se<span class="op">$</span>dex <span class="op">==</span><span class="st"> &quot;trt&quot;</span>
+testRow &lt;-<span class="st"> </span><span class="cf">function</span>(row) <span class="kw">t.test</span>(row[dex], row[<span class="op">!</span>dex])
+<span class="kw">testRow</span>(<span class="kw">assay</span>(se)[<span class="dv">1</span>,])</code></pre></div>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  row[dex] and row[!dex]
+## t = -2.8096, df = 5.3346, p-value = 0.03497
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -20.128254  -1.082408
+## sample estimates:
+## mean of x mean of y 
+##  27.93123  38.53656</code></pre>
+<p>Re-define the function to just report the <em>p</em>-value:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">testRow &lt;-<span class="st"> </span><span class="cf">function</span>(row) <span class="kw">t.test</span>(row[dex], row[<span class="op">!</span>dex])<span class="op">$</span>p.value
+<span class="kw">testRow</span>(<span class="kw">assay</span>(se)[<span class="dv">1</span>,])</code></pre></div>
+<pre><code>## [1] 0.03496799</code></pre>
+<p>Apply the function to test all 100 genes</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ps &lt;-<span class="st"> </span><span class="kw">apply</span>(<span class="kw">assay</span>(se), <span class="dv">1</span>, testRow)
+<span class="kw">head</span>(ps)</code></pre></div>
+<pre><code>## ENSG00000000003 ENSG00000000419 ENSG00000000457 ENSG00000000460 ENSG00000000971 
+##      0.03496799      0.08756672      0.58435502      0.51650086      0.23783339 
+## ENSG00000001036 
+##      0.01370098</code></pre>
+<p>and append to the <code>rowData</code> slot.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rowData</span>(se)<span class="op">$</span>pvalue &lt;-<span class="st"> </span>ps
+<span class="kw">rowData</span>(se)</code></pre></div>
+<pre><code>## DataFrame with 100 rows and 1 column
+##                    pvalue
+##                 &lt;numeric&gt;
+## ENSG00000000003 0.0349680
+## ENSG00000000419 0.0875667
+## ENSG00000000457 0.5843550
+## ENSG00000000460 0.5165009
+## ENSG00000000971 0.2378334
+## ...                   ...
+## ENSG00000005884  0.379350
+## ENSG00000005889  0.999893
+## ENSG00000005893  0.752696
+## ENSG00000005955  0.695905
+## ENSG00000005961  0.621420</code></pre>
+</div>
 </div>
 
 
@@ -330,6 +477,23 @@ $(document).ready(function () {
 
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

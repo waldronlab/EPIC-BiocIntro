@@ -17,15 +17,21 @@ There are many functions for manipulating *GRanges* objects. The
 functions can be classified as *intra-range functions*, *inter-range
 functions*, and *between-range functions*.
 
-*Intra-range functions* operate on each element of a
+<img src="files/GRanges_oview.png" alt="overview" width="600"/>
+
+**Intra-range functions** operate on each element of a
 *GRanges* object independent of the other ranges in the
-object. For example, the `flank` function can be used to recover
+object. 
+
+![](files/GRanges_intra.png)
+
+For example, the `flank` function can be used to recover
 regions flanking the set of ranges represented by the *GRanges*
 object. So to get a *GRanges* object containing the ranges that
 include the 10 bases upstream according to the direction of
 "transcription" (indicated by the strand):
  
- ```{r flank}
+```{r flank}
 g <- gr[1:3]
 g <- append(g, gr[10])
 flank(g, 10)
@@ -38,12 +44,12 @@ flank(g, 10, start=FALSE)
 ```
 
 A common use case for `flank()` is generating promoter regions based
-on the transcript ranges. There is a convenience function that by
-default generates a region starting 2000bp upstream and 200bp
-downstream of the TSS,
+on the transcript ranges. There is a convenience function that
+generates a region starting a defined number of bp upstream and downstream of 
+the TSS.
 
 ```{r promoters}
-promoters(g)
+promoters(g, upstream=100, downstream=0)
 ```
 
 To ignore strand/transcription and assume the orientation of left to
@@ -67,8 +73,12 @@ resize(g, 30)
 The `r BiocStyle::Biocpkg("GenomicRanges")` help page `?"intra-range-methods"`
 summarizes these methods.
 
-*Inter-range functions* involve comparisons between ranges in a single
-*GRanges* object and typically aggregate ranges. For instance, the
+**Inter-range functions** involve comparisons between ranges in a single
+*GRanges* object and typically aggregate ranges. 
+
+<img src="files/GRanges_inter_schematic.png" alt="schematic" width="400"/>
+
+For instance, the
 `reduce()` function will merge overlapping and adjacent ranges to
 produce a minimal set of ranges representing the regions covered by
 the original set.
@@ -137,7 +147,7 @@ See the `r BiocStyle::Biocpkg("GenomicRanges")` help page
 
 ## Interval set operations for *GRanges* objects
 
-*Between-range functions* calculate relationships between different
+**Between-range functions** calculate relationships between different
 *GRanges* objects. Of central importance are
 `findOverlaps` and related operations; these are discussed
 below.  Additional operations treat *GRanges* as mathematical
@@ -184,3 +194,14 @@ with
 ```{r granges-methods, eval=FALSE}
 methods(class="GRanges")
 ``` 
+
+## Exercises (10 min)
+
+1. Generate a `GRanges` object that contains the promoters for all genes on 
+chromosome 22 of the human `hg38` genome assembly. The promoter sequence should 
+only contain the 1 kbp upstream region of each gene.
+
+2. Reduce the set of promoters to a non-overlapping set of promoters.
+
+3. Compare the gene coordinates of the human `hg19` and `hg38` genome assemblies
+on chromosome 22. Therefore, subset to genes on chromosome 22 that are annotated for both genome assemblies. Then, use `ranges` to extract the gene coordinates, and compute pairwise intersections between them. For how many genes is the intersection larger than zero?

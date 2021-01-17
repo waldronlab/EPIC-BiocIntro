@@ -17,9 +17,10 @@ vignette: >
 
 The Ranges framework of packages provide data structures and
 algorithms for analyzing genomic data. This includes standard genomic
-data containers like GRanges and SummarizedExperiment, optimized data
-representations like Rle, and fast algorithms for computing overlaps,
-finding nearest neighbors, summarizing ranges and metadata, etc.
+data containers like `GRanges` and `SummarizedExperiment`, optimized data
+representations like `Rle`, and fast algorithms for computing overlaps,
+finding nearest neighbors, summarizing ranges and metadata, and many other 
+useful operations.
 
 ## Why use the Ranges infrastructure?
 
@@ -32,22 +33,24 @@ ecosystem.
 
 ## *GRanges*: Genomic Ranges
 
-```{r GRanges, echo = FALSE, fig.cap="An illustration of genomic ranges. GRanges represents a set genomic ranges in terms of the sequence name (typically the chromosome), start and end coordinates (as an IRanges object), and strand (either positive, negative, or unstranded). GRanges holds information about its universe of sequences (typically a genome) and an arbitrary set of metadata columns with information particular to the dataset.", out.width="\\textwidth"}
-knitr::include_graphics("files/granges.pdf")
-```
-
-The central genomic data structure is the *GRanges* class, 
+The central genomic data structure is the `GRanges` class, 
 which represents a collection of genomic ranges
 that each have a single start and end location on the genome. It can be
 used to store the location of genomic features such as binding
 sites, read alignments and transcripts. 
 
+![](files/GRanges_components.png)
+
+
 ## Constructing a *GRanges* object from data.frame
 
-If we have a data.frame containing scores on a set of genomic
+If we have a `data.frame` containing scores on a set of genomic
 ranges, we can call `makeGRangesFromDataFrame()` to promote the
-data.frame to a GRanges, thus adding semantics, formal constraints,
-and range-specific functionality. For example,
+`data.frame` to a `GRanges`.
+
+This adds semantics, formal constraints, and range-specific functionality. 
+
+For example,
 
 ```{r}
 suppressPackageStartupMessages({
@@ -68,22 +71,25 @@ gr <- makeGRangesFromDataFrame(df, keep.extra.columns=TRUE)
 gr
 ```
 
-creates a *GRanges* object with 10 genomic ranges.
-The output of the *GRanges* `show()` method separates the
-information into a left and right hand region that are separated by
-`|` symbols. The genomic coordinates (seqnames, ranges, and strand)
-are located on the left-hand side and the metadata columns (annotation)
-are located on the right. For this example, the metadata is
-comprised of `"score"` and `"GC"` information, but almost
-anything can be stored in the metadata portion of a *GRanges*
+creates a `GRanges` object with 10 genomic ranges.
+The output of the `show()` method separates the information into a left and right 
+hand region that are separated by `|` symbols. 
+
+The genomic coordinates (seqnames, ranges, and strand) are located on the 
+left-hand side and the metadata columns (annotation) are located on the right. 
+
+For this example, the metadata is comprised of `"score"` and `"GC"` information, 
+but almost anything can be stored in the metadata portion of a `GRanges`
 object.
 
 ## Loading a *GRanges* object from a standard file format
 
-We often obtain data on genomic ranges from standard track formats,
-like BED. The rtracklayer package parses those files directly into GRanges 
-objects. The GenomicAlignments package parses
-BAM files into GAlignments objects, which behave much like GRanges,
-and it is easy to convert a GAlignments to a GRanges. We will see some
-examples of loading data from files later in the tutorial.
+We often obtain data on genomic ranges from standard track formats, like BED. 
+The 
+[rtracklayer](http://bioconductor.org/packages/rtracklayer) 
+package parses those files directly into `GRanges` objects. 
 
+The 
+[GenomicAlignments](http://bioconductor.org/packages/GenomicAlignments) 
+package parses BAM files into `GAlignments` objects, which behave much like 
+`GRanges`, and it is easy to convert `GAlignments` to `GRanges`. 
